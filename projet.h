@@ -2,42 +2,47 @@
 #define PROJET_H
 
 typedef struct ethernet{
-	char mac_source[13] ;
-	char mac_dest[13] ;
-	char type[4];
+	char mac_source[12] ;
+	char mac_dest[12] ;
+	char type[2];
 } Ethernet;
 
-typedef struct ipv4{
-	char iHL[2]; 
-	char totalLength[5]; 
-	char identifier[5]; 
-	char flags[5]; 
-	char fragmentOffset[4]; //4 avec un pour le caratère de fin de chaine
-	char ttl[3]; 
-	char Protocol[3]; 
-	char headerChecksum[5];
-	char destAddress[9]; 
-	char sourceAddress[9];
-	char * option;  
-} IPV4; 
-
+// Lecture.c 
 char* motsansespace(char*x ); 
-
-// Ethernet 
 Ethernet* lectureEthernet(char* chaine); 
 void afficheEthernet(Ethernet* ether); 
 Ethernet* lecture(char *name); 
-void freeEthernet(Ethernet* ether); 
 
-//IPV4
-void lectureIPV4(char* chaine, IPV4* ipv4); 
-void afficheIPV4(IPV4* ipv4); 
-void freeIPV4(IPV4* ipv4); 
-/*typedef struct Reseau{
-	Element_alignement_bar *premier_el;
-	Element_alignement_bar *dernier_el;
-	} Alignement_bar;
+/*typedef struct ip_hx{
+	char IHL;
+	//char ToS[2]; initialiser à 0 en général
+	char total_lenght[4];
+	char Identifier[4];
+	char 0_DF_MF_Frangmentoffset[4];
+	char TTL[2];
+	char protocole[2];
+	char Header_Checksum[4];
+	char Source_adresse[8];
+	char Destination_adresse[8];
+	char options_padding[16]
+	} IP_hx;
 
+typedef struct ip_dc{
+	int IHL; //taille de l'entête IP (header+options) /4
+	int total_lenght; // IP+ datas associées (data= lenght-4*IHL)
+	int Identifier; //code d'identification (identique pour les fragment d'un même ensemble)
+	int DF; //1 ou 0 Don't fragment
+	int MF; //1 ou 0 More fragment
+	int fragment_offset; //positionnement du fragment
+	int TTL; //68 en général je crois, max 255
+	char protocole[2];
+	int Header_Checksum; //1 checksum : OK, 0 problème 
+	int Source_adresse[4];
+	int Destination_adresse[4];
+	char options_padding[16]
+	} IP_dc;
+	
+	
 typedef struct alignement{
 	Alignement_bar* x;
 	Alignement_bar* y;
