@@ -7,8 +7,6 @@
 
 int main(){
     Ethernet* ether= lecture("trame1.txt"); 
-    free(ether->mac_dest); 
-    free(ether->mac_source); 
-    free(ether); 
+    freeEthernet(ether); 
     return 0; 
 }
