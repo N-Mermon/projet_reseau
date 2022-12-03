@@ -1,3 +1,3 @@
 # projet_reseau
 
-Test du projet dans 30 jours. 
+Test du projet dans 6 jours. 
