@@ -1,14 +1,13 @@
-#ifndef TACHEA_H
-#define TACHEA_H
+#ifndef PROJET_H
+#define PROJET_H
 
-typedef struct element_alignement_bar{
-	int gap; // 0 ou 1
-	char lettre; // A,G,C ou T
-	struct element_alignement_bar *prec;
-	struct element_alignement_bar *suiv;
-} Element_alignement_bar;
+typedef struct ethernet{
+	char mac_source[12] ;
+	char mac_dest[12] ;
+	Reseau *type;
+} Ethernet;
 
-typedef struct Alignement_bar{
+typedef struct Reseau{
 	Element_alignement_bar *premier_el;
 	Element_alignement_bar *dernier_el;
 	} Alignement_bar;
