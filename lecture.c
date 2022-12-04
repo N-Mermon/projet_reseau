@@ -99,6 +99,15 @@ void lectureIPV4(char* chaine, IPV4* ipv4){
                 //6 caractères dans destAddress
             }
         }
+    ipv4->iHL[4]='\0'; 
+    ipv4->identifier[4]='\0'; 
+    ipv4->flags[4]='\0'; 
+    ipv4->fragmentOffset[3]='\0'; 
+    ipv4->ttl[2]='\0'; 
+    ipv4->Protocol[2]='\0'; 
+    ipv4->headerChecksum[4]='\0'; 
+    ipv4->destAddress[8]='\0'; 
+    ipv4->sourceAddress[8]='\0'; 
 
     }
 }
@@ -163,15 +172,17 @@ Ethernet* lecture(char *name){
 
             afficheIPV4(ipv4); 
 
-            if(strcmp(ipv4->Protocol,"01")==0){
+            /*if(strcmp(ipv4->Protocol,"01")==0){
                 //Protocole ICMP
+                //pas besoin de le faire selon le sujet 
             }
+            */
             if(strcmp(ipv4->Protocol,"06")==0){
                 //Protocole TCP 
             }
-            if(strcmp(ipv4->Protocol,"11")==0){
+            /*if(strcmp(ipv4->Protocol,"11")==0){
                 //Protocole UDP
-            }
+            }*/ //Pas besoin de le faire selon le sujet 
         }
 
     fclose(file); 
