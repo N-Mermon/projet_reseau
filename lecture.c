@@ -48,67 +48,98 @@ void afficheoption(Option * option){
 Ethernet* lecture(char *name){
     //lecture d'une trame à partir d'un fichier 
     FILE* file= fopen(name, "r"); 
-    //int currentchar=0; 
-    //int indice =0; 
-    Ethernet* ethernet; 
-    char* chaine= malloc(TAILLE_MAX*sizeof(char)); 
-    char* ligne_suiv= malloc(TAILLE_MAX*sizeof(char)); 
-
     if(file==NULL){
         return NULL; 
     }
-    printf("coucou"); 
-    //do{
-       fgets(chaine, TAILLE_MAX, file); 
+    //int currentchar=0; 
+    //int indice =0; 
+    Ethernet* ethernet; 
+    //char* ligne_suiv= malloc(TAILLE_MAX*sizeof(char)); 
 
-        // lecture d'un trame ethernet 
-        chaine = motsansespace(chaine);
-        //Taille max d'une ligne sans espace = 36  
-        printf(" chaine : %s\n", chaine); 
-        ethernet=lectureEthernet(chaine); 
-        
-        afficheEthernet(ethernet); 
+    char* chainetot = malloc(1000*sizeof(char)); 
+    char* chaine= malloc(36*sizeof(char)); 
+    // lecture intégrale du fichier texte
+    while(fgets(chaine, TAILLE_MAX, file)!=NULL){
+        chainetot= strcat(chainetot,chaine); 
+    }
+    chainetot=motsansespace(chainetot); 
+    //un ligne fait 36 caractère sans espace et avec offset
+    // sans offset elle en fait 32
+    printf("chainetot : %s\n", chainetot); 
+    int indice =7; 
+    // lecture d'un trame ethernet 
+    //Trame ethernet fait au maximum sans le préambule et seulement avec les adresses Mac et le type
+    //: 28
+    char* ch= malloc(36*sizeof(char)); 
+    ch[35]='\0'; 
+    while(indice<35){
+        ch[indice-7]=chainetot[indice]; 
+        indice++; 
+    }
+    //printf("\n chaine : %s", ch); 
+    ethernet=lectureEthernet(ch); 
+    afficheEthernet(ethernet); 
+    free(ch); 
 
-        //lecture de IPV4 
-        if(strcmp(ethernet->type,"0800")==0){
-            printf("La couche reseau est IPV4\n");
-            IPV4* ipv4= malloc(sizeof(IPV4));  
+    //lecture de IPV4 
+    if(strcmp(ethernet->type,"0800")==0){
+        printf("La couche reseau est IPV4\n");
+        IPV4* ipv4= malloc(sizeof(IPV4));  
 
-            //initialisation du champ IHL
-            ipv4->iHL[0]= chaine[33]; 
-            ipv4->iHL[1]= '\0'; 
+        // intialisation du champs tos et de IHL
+        ipv4->iHL[0]=chainetot[36];
+        ipv4->iHL[1]='\0'; 
+        //tos est pas défaut toujours à 0x00
 
-            printf("IHL : %s\n" , ipv4->iHL); 
+        //Chaine pour ipv4
+        //taille max =60 sans les data + 2 offset 
+        indice=43; 
+        char* ch= malloc(68*sizeof(char)); 
+        ch[67]='\0'; 
+        while(indice-43<68){
+            ch[indice-43]=chainetot[indice];
+            indice++;  
+        } 
 
-            //On parcours une nouvelle ligne
-            int marche = fseek(file, 0075, SEEK_SET); 
-            //printf("marche : %d\n",marche); 
-            fgets(chaine, TAILLE_MAX, file);
-            //printf("Chaine : %s\n", chaine );
+        //printf("\n chaine : %s", ch); 
+        indice=43+lectureIPV4(ch,ipv4); 
+        printf(" indice : %d\n", indice); 
+        afficheIPV4(ipv4); 
 
-            marche = fseek(file, 0165, SEEK_SET); 
-            printf("marche : %d\n",marche); 
-            fgets(ligne_suiv, TAILLE_MAX, file);
-            printf("ligne_suiv : %s\n", ligne_suiv );
+        /*if(strcmp(ipv4->Protocol,"01")==0){
+            //Protocole ICMP
+        }*/
+        if(strcmp(ipv4->Protocol,"06")==0){
+            //Protocole TCP 
+            char* ch= malloc(140*sizeof(char)); 
+            
+            int constante=indice; 
+            while(indice-constante<140 && chainetot[indice]!='\0'){
+                ch[indice-constante]=chainetot[indice];
+                indice++;  
+            } 
+            ch[indice-constante]='\0'; 
 
-            chaine = strcat(chaine, ligne_suiv); 
-            chaine = motsansespace(chaine);
-            printf("Chaine apres concatenation: %s\n", chaine );
-            printf(" lecture IPV4 : %d \n", lectureIPV4(chaine,ipv4)); 
+            int reste=(constante-3)%36; 
+            printf("reste: %d", reste); // on est à la reste ième case du début d'une ligne. 
+            reste=reste-4; // on enlève le offset
+            int findeligneds= 32-reste; // on est en fin de ligne dans 32-reste 
 
-            afficheIPV4(ipv4); 
-
-            if(strcmp(ipv4->Protocol,"01")==0){
-                //Protocole ICMP
-            }
-            if(strcmp(ipv4->Protocol,"06")==0){
-                //Protocole TCP 
-            }
-            if(strcmp(ipv4->Protocol,"11")==0){
-                //Protocole UDP
-            }
+            TCP* tcp= malloc(sizeof(TCP)); 
+            printf("\n chaine : %s", ch);
+            indice= indice + lecturetcp(ch,tcp,findeligneds); 
+            afficheTCP(tcp); 
+            
         }
-
+        /*if(strcmp(ipv4->Protocol,"11")==0){
+            //Protocole UDP
+        }*/ 
+        
+    
+    }
+    free(chaine); 
+    free(ch); 
+    free(chainetot); 
     fclose(file); 
     return ethernet; 
 }
