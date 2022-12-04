@@ -10,11 +10,14 @@ ipv4.o : ipv4.c projet.h
 ethernet.o : ethernet.c projet.h	
 	gcc -Wall -c -o ethernet.o ethernet.c
 
+tcp.o : tcp.c projet.h	
+	gcc -Wall -c -o tcp.o tcp.c
+
 Main.o : main.c projet.h
 	gcc -Wall -c -o Main.o main.c
 	
-Main: Main.o lecture.o ethernet.o ipv4.o
-	gcc -o Main Main.o lecture.o ethernet.o ipv4.o
+Main: Main.o lecture.o ethernet.o ipv4.o tcp.o
+	gcc -o Main Main.o lecture.o ethernet.o ipv4.o tcp.o
 
 clean :
 	rm -f *.o
