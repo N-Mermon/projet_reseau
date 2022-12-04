@@ -7,17 +7,31 @@
 
 #define TAILLE_MAX 56
 
+int hexa_int(char* s){
+    int x= 0; 
+    unsigned char c= 0;
+    while(*s!='\0'){
+        if(*s>= '0' && *s <='9') c= *s-'0'; 
+        else if(*s>= 'a' && *s <='f') c= *s-'a'+10; 
+        else if(*s>= 'A' && *s <='F') c= *s-'A'+10; 
+        else break; 
+        x=x*16+c; 
+        s++; 
+    }
+
+    return x; 
+}
 char* motsansespace(char*x ){
     char* s= malloc(strlen(x)*sizeof(char)); 
     int j=0; 
     for(int i=0; i<strlen(x);i++){
-        if(x[i]!= ' '){
+        if((x[i]!= ' ')&&(x[i]!='\n')){
             s[j]=x[i]; 
             j++; 
         }
     }
     s[j]='\0'; 
-    printf("Apres la suppression des espaces : %s", s); 
+    //printf("Apres la suppression des espaces : %s", s); 
     //free(x); 
     return s; 
 }
@@ -55,7 +69,7 @@ void freeEthernet(Ethernet* ether){
 }
 // Couche Réseau 
 //IPV4
-void lectureIPV4(char* chaine, IPV4* ipv4){
+int lectureIPV4(char* chaine, IPV4* ipv4){
     ipv4->iHL[4]='\0';
     ipv4->totalLength[4]='\0';
     ipv4->identifier[4]='\0'; 
@@ -68,16 +82,12 @@ void lectureIPV4(char* chaine, IPV4* ipv4){
     ipv4->sourceAddress[8]='\0'; 
 
     int fragmentoffset=0; 
+    int option =(hexa_int(ipv4->iHL))*4-20; 
+    //printf("option : %d \n", option); 
     ipv4->fragmentOffset[0]=0; 
     for(int i=0; chaine[i]!='\0'; i++){
-        if((i<6)&&(i>=2)){
-            ipv4->totalLength[i-2]=chaine[i];   
-            
-        }
-        if((i<10)&&(i>=6)){
-             
-            ipv4->identifier[i-6]=chaine[i]; 
-        }
+        if((i<6)&&(i>=2)) ipv4->totalLength[i-2]=chaine[i];   
+        if((i<10)&&(i>=6)) ipv4->identifier[i-6]=chaine[i]; 
         if((i<12)&&(i>=10)){
             ipv4->flags[i-10]=chaine[i];
             if(chaine[i]!='0'){
@@ -87,43 +97,40 @@ void lectureIPV4(char* chaine, IPV4* ipv4){
         }
         if(fragmentoffset!=0){
             //printf("fragmentoffset %d\t",fragmentoffset);
-            if((i<18)&&(i>=12)){
-                ipv4->fragmentOffset[i-12]=chaine[i];
+            if((i<18)&&(i>=12)) ipv4->fragmentOffset[i-12]=chaine[i];
+            if((i<21)&&(i>=18)) ipv4->ttl[i-18]=chaine[i];
+            if((i<24)&&(i>=21)) ipv4->Protocol[i-21]=chaine[i];
+            if((i<29)&&(i>=24)) ipv4->headerChecksum[i-24]=chaine[i];
+            if((i>=29)&&(i<37)) ipv4->destAddress[i-29]=chaine[i]; 
+            if((i>=37)&&(i<45)) ipv4->sourceAddress[i-37]=chaine[i]; 
+            if((option==0)&&(i>=45)){
+                printf("Il n'y a pas d'option \n"); 
+                return i; 
             }
-            if((i<21)&&(i>=18)){
-                ipv4->ttl[i-18]=chaine[i];
-            }
-            if((i<24)&&(i>=21)){
-                ipv4->Protocol[i-21]=chaine[i];
-            }
-            if((i<29)&&(i>=24)){
-                ipv4->headerChecksum[i-24]=chaine[i];
-            }
-            if(i>=29){
-                ipv4->destAddress[i-29]=chaine[i]; 
+            if((i>=45)&&(option!=0)){
+                return i; 
             }
         }else{
-            if((i<14)&&(i>=12)){
-                ipv4->ttl[i-12]=chaine[i];
+            if((i<14)&&(i>=12)) ipv4->ttl[i-12]=chaine[i];
+            if((i<16)&&(i>=14)) ipv4->Protocol[i-14]=chaine[i];
+            if((i<20)&&(i>=16)) ipv4->headerChecksum[i-16]=chaine[i];
+            if((i>=20)&&(i<28)) ipv4->destAddress[i-20]=chaine[i]; 
+                //8 caractères dans destAddress
+            if((i>=28)&&(i<36)) ipv4->sourceAddress[i-28]=chaine[i]; 
+            if((option==0)&&(i>=36)){
+                printf("Il n'y a pas d'option \n"); 
+                return i; 
             }
-            if((i<16)&&(i>=14)){
-                ipv4->Protocol[i-14]=chaine[i];
-            }
-            if((i<20)&&(i>=16)){
-                ipv4->headerChecksum[i-16]=chaine[i];
-            }
-            if((i>=20)&&(i<32)){
-                ipv4->destAddress[i-20]=chaine[i]; 
-                //6 caractères dans destAddress
-            }
-            if(i>=32){
-                ipv4->sourceAddress[i-32]=chaine[i]; 
-            }
-        }
+            if((i>=36)&&(option!=0)){
 
-    }
+                return i; 
+            }
+        }//fin du else
+
+    }//fin boucle for 
+    return strlen(chaine); 
     
-}
+}//fin de lectureIPV4
 void afficheIPV4(IPV4* ipv4){
     if(strcmp(ipv4->flags,"00")==0){
         printf("4 IHL: %s TOS: 00, TotalLenght : %s , Identifier : %s , flags: %s ", ipv4->iHL, ipv4->totalLength, ipv4->identifier, ipv4->flags); 
@@ -166,8 +173,8 @@ Ethernet* lecture(char *name){
         chaine = motsansespace(chaine);
         //Taille max d'une ligne sans espace = 36  
         ethernet=lectureEthernet(chaine); 
-        printf(" chaine : %s\n", chaine); 
-        afficheEthernet(ethernet); 
+        //printf(" chaine : %s\n", chaine); 
+        //afficheEthernet(ethernet); 
 
         //lecture de IPV4 
         if(strcmp(ethernet->type,"0800")==0){
@@ -183,14 +190,15 @@ Ethernet* lecture(char *name){
             printf("marche : %d\n",marche); 
             fgets(chaine, TAILLE_MAX, file);
             printf("Chaine : %s\n", chaine );
-            chaine = motsansespace(chaine);
 
-            marche = fseek(file, 0100, SEEK_SET); 
+            marche = fseek(file, 0170, SEEK_SET); 
             printf("marche : %d\n",marche); 
             fgets(ligne_suiv, TAILLE_MAX, file);
             printf("ligne_suiv : %s\n", ligne_suiv );
 
             chaine = strcat(chaine, ligne_suiv); 
+            chaine = motsansespace(chaine);
+            printf("Chaine apres concatenation: %s\n", chaine );
             lectureIPV4(chaine,ipv4); 
 
             afficheIPV4(ipv4); 
