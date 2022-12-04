@@ -5,7 +5,7 @@
 #include <math.h>
 #include <time.h>
 
-#define TAILLE_MAX 55
+#define TAILLE_MAX 56
 
 char* motsansespace(char*x ){
     char* s= malloc(strlen(x)*sizeof(char)); 
@@ -17,10 +17,11 @@ char* motsansespace(char*x ){
         }
     }
     s[j]='\0'; 
-    printf("Après la suppression des espaces : %s", s); 
+    printf("Apres la suppression des espaces : %s", s); 
     //free(x); 
     return s; 
 }
+
 //Couche Liaison 
 //Ethernet
 Ethernet* lectureEthernet(char* chaine){
@@ -55,53 +56,10 @@ void freeEthernet(Ethernet* ether){
 // Couche Réseau 
 //IPV4
 void lectureIPV4(char* chaine, IPV4* ipv4){
-    int fragmentoffset=0; 
-    ipv4->fragmentOffset[0]=0; 
-    for(int i=0; chaine[i]!='\0'; i++){
-        if((i<10)&&(i>=6)){
-            ipv4->totalLength[i-6]=chaine[i];      
-        }
-        if((i<15)&&(i>=10)){
-            ipv4->identifier[i-10]=chaine[i]; 
-        }
-        if((i<20)&&(i>=15)){
-            ipv4->flags[i-15]=chaine[i];
-            fragmentoffset= fragmentoffset+chaine[i];
-        }
-        if(fragmentoffset>0){
-            if((i<24)&&(i>=20)){
-                ipv4->fragmentOffset[i-20]=chaine[i];
-            }
-            if((i<27)&&(i>=24)){
-                ipv4->ttl[i-24]=chaine[i];
-            }
-            if((i<30)&&(i>=27)){
-                ipv4->Protocol[i-27]=chaine[i];
-            }
-            if((i<35)&&(i>=30)){
-                ipv4->headerChecksum[i-30]=chaine[i];
-            }
-            if(i>=35){
-                ipv4->destAddress[i-35]=chaine[i]; 
-            }
-        }else{
-            if((i<23)&&(i>=20)){
-                ipv4->ttl[i-20]=chaine[i];
-            }
-            if((i<26)&&(i>=23)){
-                ipv4->Protocol[i-27]=chaine[i];
-            }
-            if((i<31)&&(i>=26)){
-                ipv4->headerChecksum[i-30]=chaine[i];
-            }
-            if(i>=31){
-                ipv4->destAddress[i-31]=chaine[i]; 
-                //6 caractères dans destAddress
-            }
-        }
-    ipv4->iHL[4]='\0'; 
+    ipv4->iHL[4]='\0';
+    ipv4->totalLength[4]='\0';
     ipv4->identifier[4]='\0'; 
-    ipv4->flags[4]='\0'; 
+    ipv4->flags[2]='\0'; 
     ipv4->fragmentOffset[3]='\0'; 
     ipv4->ttl[2]='\0'; 
     ipv4->Protocol[2]='\0'; 
@@ -109,10 +67,65 @@ void lectureIPV4(char* chaine, IPV4* ipv4){
     ipv4->destAddress[8]='\0'; 
     ipv4->sourceAddress[8]='\0'; 
 
+    int fragmentoffset=0; 
+    ipv4->fragmentOffset[0]=0; 
+    for(int i=0; chaine[i]!='\0'; i++){
+        if((i<6)&&(i>=2)){
+            ipv4->totalLength[i-2]=chaine[i];   
+            
+        }
+        if((i<10)&&(i>=6)){
+             
+            ipv4->identifier[i-6]=chaine[i]; 
+        }
+        if((i<12)&&(i>=10)){
+            ipv4->flags[i-10]=chaine[i];
+            if(chaine[i]!='0'){
+                fragmentoffset=1; 
+                printf("chaine : %c ", chaine [i]); 
+            }
+        }
+        if(fragmentoffset!=0){
+            //printf("fragmentoffset %d\t",fragmentoffset);
+            if((i<18)&&(i>=12)){
+                ipv4->fragmentOffset[i-12]=chaine[i];
+            }
+            if((i<21)&&(i>=18)){
+                ipv4->ttl[i-18]=chaine[i];
+            }
+            if((i<24)&&(i>=21)){
+                ipv4->Protocol[i-21]=chaine[i];
+            }
+            if((i<29)&&(i>=24)){
+                ipv4->headerChecksum[i-24]=chaine[i];
+            }
+            if(i>=29){
+                ipv4->destAddress[i-29]=chaine[i]; 
+            }
+        }else{
+            if((i<14)&&(i>=12)){
+                ipv4->ttl[i-12]=chaine[i];
+            }
+            if((i<16)&&(i>=14)){
+                ipv4->Protocol[i-14]=chaine[i];
+            }
+            if((i<20)&&(i>=16)){
+                ipv4->headerChecksum[i-16]=chaine[i];
+            }
+            if((i>=20)&&(i<32)){
+                ipv4->destAddress[i-20]=chaine[i]; 
+                //6 caractères dans destAddress
+            }
+            if(i>=32){
+                ipv4->sourceAddress[i-32]=chaine[i]; 
+            }
+        }
+
     }
+    
 }
 void afficheIPV4(IPV4* ipv4){
-    if(strcmp(ipv4->fragmentOffset,'0')){
+    if(strcmp(ipv4->flags,"00")==0){
         printf("4 IHL: %s TOS: 00, TotalLenght : %s , Identifier : %s , flags: %s ", ipv4->iHL, ipv4->totalLength, ipv4->identifier, ipv4->flags); 
     }else{
         printf("4 IHL: %s TOS: 00, TotalLenght : %s , Identifier : %s , flags: %s, FragmentOffset : %s ", ipv4->iHL, ipv4->totalLength, ipv4->identifier, ipv4->flags, ipv4->fragmentOffset); 
@@ -140,7 +153,7 @@ Ethernet* lecture(char *name){
     //int indice =0; 
     Ethernet* ethernet; 
     char* chaine= malloc(TAILLE_MAX*sizeof(char)); 
-
+    char* ligne_suiv= malloc(TAILLE_MAX*sizeof(char)); 
 
     if(file==NULL){
         return NULL; 
@@ -158,7 +171,7 @@ Ethernet* lecture(char *name){
 
         //lecture de IPV4 
         if(strcmp(ethernet->type,"0800")==0){
-            printf("La couche réseau est IPV4\n");
+            printf("La couche reseau est IPV4\n");
             IPV4* ipv4= malloc(sizeof(IPV4));  
 
             //initialisation du champ IHL
@@ -166,23 +179,31 @@ Ethernet* lecture(char *name){
             ipv4->iHL[1]= '\0'; 
 
             //On parcours une nouvelle ligne
+            int marche = fseek(file, 0100, SEEK_SET); 
+            printf("marche : %d\n",marche); 
             fgets(chaine, TAILLE_MAX, file);
+            printf("Chaine : %s\n", chaine );
             chaine = motsansespace(chaine);
+
+            marche = fseek(file, 0100, SEEK_SET); 
+            printf("marche : %d\n",marche); 
+            fgets(ligne_suiv, TAILLE_MAX, file);
+            printf("ligne_suiv : %s\n", ligne_suiv );
+
+            chaine = strcat(chaine, ligne_suiv); 
             lectureIPV4(chaine,ipv4); 
 
             afficheIPV4(ipv4); 
 
-            /*if(strcmp(ipv4->Protocol,"01")==0){
+            if(strcmp(ipv4->Protocol,"01")==0){
                 //Protocole ICMP
-                //pas besoin de le faire selon le sujet 
             }
-            */
             if(strcmp(ipv4->Protocol,"06")==0){
                 //Protocole TCP 
             }
-            /*if(strcmp(ipv4->Protocol,"11")==0){
+            if(strcmp(ipv4->Protocol,"11")==0){
                 //Protocole UDP
-            }*/ //Pas besoin de le faire selon le sujet 
+            }
         }
 
     fclose(file); 
