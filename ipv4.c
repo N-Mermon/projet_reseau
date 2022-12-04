@@ -1,5 +1,3 @@
-#include "projet.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -19,18 +17,22 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
     ipv4->sourceAddress[8]='\0'; 
 
     int fragmentoffset=0; 
+    
     int option =(hexa_int(ipv4->iHL))*4-20;
-    ipv4->option= malloc(sizeof(Option)); 
-    Option * tete= ipv4->option;  
     printf("option : %d \n", option); 
+
+    Option * tete= ipv4->option;  
+
+    
     ipv4->fragmentOffset[0]=0; 
+    //remplissage de ipv4
     for(int i=0; chaine[i]!='\0'; i++){
         if((i<4)&&(i>=0)) ipv4->totalLength[i]=chaine[i];   
         if((i<8)&&(i>=4)) ipv4->identifier[i-4]=chaine[i]; 
         if((i<12)&&(i>=8)){
             ipv4->flags[i-8]=chaine[i];
             if(chaine[i]!='0'){
-                fragmentoffset=1; 
+                fragmentoffset=0; 
                 printf("chaine : %c ", chaine [i]); 
             }
         }
@@ -40,16 +42,19 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
             if((i<19)&&(i>=16)) ipv4->ttl[i-16]=chaine[i];
             if((i<21)&&(i>=19)) ipv4->Protocol[i-19]=chaine[i];
             if((i<25)&&(i>=21)) ipv4->headerChecksum[i-21]=chaine[i];
-            if((i>=25)&&(i<33)) ipv4->destAddress[i-25]=chaine[i]; 
-            if((i>=33)&&(i<41)) ipv4->sourceAddress[i-33]=chaine[i]; 
-            if((option==0)&&(i>=41)){
+            if((i>=25 && i<32) ) ipv4->destAddress[i-25]=chaine[i];
+            if(i==36) ipv4->destAddress[7]=chaine[i];
+            if((i>=37)&&(i<45)) ipv4->sourceAddress[i-37]=chaine[i]; 
+            if((option==0)&&(i>=45)){
                 printf("Il n'y a pas d'option \n"); 
-                free(ipv4->option); 
+                free(tete); 
+                ipv4->option=NULL; 
                 return i; 
             }
-            if((i>=41)&&(option!=0)){
+            if((i>=45)&&(option!=0)){
                 if(chaine[i]=='0' && chaine[i+1]=='\0'){
                     //End of Option List
+                    tete= malloc(sizeof(Option)); 
                     tete->op[0]='0';
                     tete->op[1]='0';
                     tete->op[2]='\0';
@@ -60,16 +65,18 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
                 else {
                     if(chaine[i]=='0'&& chaine[i+1]=='1'){
                     //No Operation : aligner le debut de l'option suivante sur 32bits 
+                    tete= malloc(sizeof(Option)); 
                     tete->op[0]='0';
                     tete->op[1]='1';
                     tete->op[2]='\0';
                     tete->octet= 0; 
                     tete= tete->suiv;
-                    tete= malloc(sizeof(Option)); 
+                    
                     continue; 
                     } 
                     else if(chaine[i]=='0'&& chaine[i+1]=='7'){
                     //Record Route : Permet d'enregistrer l'adesse IP de cahque passerelle traversée
+                    tete= malloc(sizeof(Option)); 
                     tete->op[0]='0';
                     tete->op[1]='7';
                     tete->op[2]='\0';
@@ -79,17 +86,16 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
                     c[2]='\0'; 
                     tete->octet= hexa_int(c); 
                     tete= tete->suiv;
-                    tete= malloc(sizeof(Option)); 
                     i=i+3; 
                     continue; 
                     } 
                     else {
+                        tete= malloc(sizeof(Option)); 
                         tete->op[0]=chaine[i];
                         tete->op[1]=chaine[i+1];
                         tete->op[2]='\0';
                         tete->octet= 0; 
                         tete= tete->suiv;
-                        tete= malloc(sizeof(Option)); 
                         i=i+1; 
                         continue; 
                     }
@@ -100,16 +106,19 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
             if((i<16)&&(i>=14)) ipv4->Protocol[i-14]=chaine[i];
             if((i<20)&&(i>=16)) ipv4->headerChecksum[i-16]=chaine[i];
             if((i>=20)&&(i<28)) ipv4->destAddress[i-20]=chaine[i]; 
-                //8 caractères dans destAddress
-            if((i>=28)&&(i<36)) ipv4->sourceAddress[i-28]=chaine[i]; 
-            if((option==0)&&(i>=36)){
+            //8 caractères dans destAddress
+            if(i>=28 && i<32) ipv4->sourceAddress[i-28]=chaine[i]; 
+            if((i>=36 && i<40)) ipv4->sourceAddress[i-36+4]=chaine[i]; 
+            if((option==0)&&(i>=40)){
                 printf("Il n'y a pas d'option \n"); 
-                free(ipv4->option); 
+                free(tete); 
+                ipv4->option=NULL; 
                 return i; 
             }
-            if((i>=36)&&(option!=0)){
+            if((i>=40)&&(option!=0)){
                 if(chaine[i]=='0' && chaine[i+1]=='0'){
                     //End of Option List
+                    tete= malloc(sizeof(Option)); 
                     tete->op[0]='0';
                     tete->op[1]='0';
                     tete->op[2]='\0';
@@ -120,16 +129,17 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
                 else {
                     if(chaine[i]=='0'&& chaine[i+1]=='1'){
                     //No Operation : aligner le debut de l'option suivante sur 32bits 
+                    tete= malloc(sizeof(Option)); 
                     tete->op[0]='0';
                     tete->op[1]='1';
                     tete->op[2]='\0';
                     tete->octet= 0; 
                     tete= tete->suiv;
-                    tete= malloc(sizeof(Option)); 
                     continue; 
                     } 
                     else if(chaine[i]=='0'&& chaine[i+1]=='7'){
                         //Record Route : Permet d'enregistrer l'adesse IP de cahque passerelle traversée
+                        tete= malloc(sizeof(Option)); 
                         tete->op[0]='0';
                         tete->op[1]='7';
                         tete->op[2]='\0';
@@ -143,12 +153,12 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
                         //afficheoption(ipv4->option); 
                         tete= tete->suiv;
                         i=i+3; 
-                        tete= malloc(sizeof(Option)); 
                         //printf(" tout va bien %c", chaine[i]); 
                         continue; 
                     } 
                     else {
                         //printf(" tout va bien "); 
+                        tete= malloc(sizeof(Option)); 
                         tete->op[0]=chaine[i];
                         tete->op[1]=chaine[i+1];
                         tete->op[2]='\0';
@@ -156,7 +166,6 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
                         afficheoption(tete); 
                         tete= tete->suiv;
                         i=i+1; 
-                        tete= malloc(sizeof(Option)); 
                         continue; 
                     }
 
@@ -190,4 +199,5 @@ void freeIPV4(IPV4* ipv4 ){
     free(ipv4->headerChecksum); 
     free(ipv4->destAddress); 
     free(ipv4->sourceAddress); 
+    free(ipv4); 
 }
