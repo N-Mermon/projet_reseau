@@ -24,7 +24,7 @@ int hexa_int(char* s){
 char* motsansespace(char*x ){
     char* s= malloc(strlen(x)*sizeof(char)); 
     int j=0; 
-    for(int i=3; i<strlen(x);i++){
+    for(int i=0; i<strlen(x);i++){
         if((x[i]!= ' ')&&(x[i]!='\n')){
             s[j]=x[i]; 
             j++; 
@@ -45,13 +45,13 @@ void afficheoption(Option * option){
 }
 char* supprimeoffset(char* ch){
     char* chaine = malloc(strlen(ch)*sizeof(char)); 
-    int i=3; 
+    int i=4; 
     while(i<strlen(ch)){
-        chaine[i-3]=ch[i];
+        chaine[i-4]=ch[i];
         i++; 
     }
     free(ch); 
-    chaine[i-3]='\0'; 
+    chaine[i-4]='\0'; 
     return chaine; 
 }
 
@@ -67,10 +67,12 @@ Ethernet* lecture(char *name){
    
 
     char* chainetot = malloc(1500*sizeof(char)); 
+    chainetot[0]='\0'; 
     char* chaine= malloc(55*sizeof(char)); 
     // lecture intégrale du fichier texte
     while(fgets(chaine, TAILLE_MAX, file)!=NULL){
         chaine= supprimeoffset(chaine); 
+        //printf("chaine : %s\n",chaine); 
         chainetot=strcat(chainetot,chaine); 
     }
     chainetot=motsansespace(chainetot); 
@@ -106,7 +108,7 @@ Ethernet* lecture(char *name){
 
         //Chaine pour ipv4
         //taille max =60 sans les data + 2 offset 
-        indice=33; 
+        indice=32; 
         //on rajoute à indice la taille de iHL et de Tos
         char* ch= malloc(61*sizeof(char)); 
         ch[60]='\0'; 
@@ -116,7 +118,7 @@ Ethernet* lecture(char *name){
         } 
 
         printf("chaine : %s\n", ch); 
-        indice=33+lectureIPV4(ch,ipv4); 
+        indice=32+lectureIPV4(ch,ipv4); 
         printf(" indice : %d\n", indice); 
         afficheIPV4(ipv4); 
 
