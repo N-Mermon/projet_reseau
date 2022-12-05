@@ -1,9 +1,9 @@
+#include "projet.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
-#include <stdio.h>
-#include "projet.h"
 
 // Couche Réseau 
 //IPV4
@@ -33,8 +33,8 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
         if((i<8)&&(i>=4)) ipv4->identifier[i-4]=chaine[i]; 
         if((i<12)&&(i>=8)){
             ipv4->flags[i-8]=chaine[i];
-            if(chaine[i]!='0'){
-                fragmentoffset=0; 
+            if(chaine[i]!='0' && i>=9){
+                fragmentoffset=1; 
                 printf("chaine : %c ", chaine [i]); 
             }
         }
@@ -44,16 +44,15 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
             if((i<19)&&(i>=16)) ipv4->ttl[i-16]=chaine[i];
             if((i<21)&&(i>=19)) ipv4->Protocol[i-19]=chaine[i];
             if((i<25)&&(i>=21)) ipv4->headerChecksum[i-21]=chaine[i];
-            if((i>=25 && i<32) ) ipv4->destAddress[i-25]=chaine[i];
-            if(i==36) ipv4->destAddress[7]=chaine[i];
-            if((i>=37)&&(i<45)) ipv4->sourceAddress[i-37]=chaine[i]; 
-            if((option==0)&&(i>=45)){
+            if((i>=25 && i<33) ) ipv4->destAddress[i-25]=chaine[i];
+            if((i>=33)&&(i<41)) ipv4->sourceAddress[i-33]=chaine[i]; 
+            if((option==0)&&(i>=41)){
                 printf("Il n'y a pas d'option \n"); 
                 free(tete); 
                 ipv4->option=NULL; 
                 return i; 
             }
-            if((i>=45)&&(option!=0)){
+            if((i>=41)&&(option!=0)){
                 if(chaine[i]=='0' && chaine[i+1]=='\0'){
                     //End of Option List
                     tete= malloc(sizeof(Option)); 
@@ -109,15 +108,14 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
             if((i<20)&&(i>=16)) ipv4->headerChecksum[i-16]=chaine[i];
             if((i>=20)&&(i<28)) ipv4->destAddress[i-20]=chaine[i]; 
             //8 caractères dans destAddress
-            if(i>=28 && i<32) ipv4->sourceAddress[i-28]=chaine[i]; 
-            if((i>=36 && i<40)) ipv4->sourceAddress[i-36+4]=chaine[i]; 
-            if((option==0)&&(i>=40)){
+            if(i>=28 && i<36) ipv4->sourceAddress[i-28]=chaine[i]; 
+            if((option==0)&&(i>=36)){
                 printf("Il n'y a pas d'option \n"); 
                 free(tete); 
                 ipv4->option=NULL; 
                 return i; 
             }
-            if((i>=40)&&(option!=0)){
+            if((i>=36)&&(option!=0)){
                 if(chaine[i]=='0' && chaine[i+1]=='0'){
                     //End of Option List
                     tete= malloc(sizeof(Option)); 
