@@ -24,7 +24,7 @@ int hexa_int(char* s){
 char* motsansespace(char*x ){
     char* s= malloc(strlen(x)*sizeof(char)); 
     int j=0; 
-    for(int i=0; i<strlen(x);i++){
+    for(int i=3; i<strlen(x);i++){
         if((x[i]!= ' ')&&(x[i]!='\n')){
             s[j]=x[i]; 
             j++; 
@@ -32,7 +32,7 @@ char* motsansespace(char*x ){
     }
     s[j]='\0'; 
     //printf("Apres la suppression des espaces : %s", s); 
-    //free(x); 
+    free(x); 
     return s; 
 }
 void afficheoption(Option * option){
@@ -43,6 +43,17 @@ void afficheoption(Option * option){
         printf("vrai" ); 
     }
 }
+char* supprimeoffset(char* ch){
+    char* chaine = malloc(strlen(ch)*sizeof(char)); 
+    int i=3; 
+    while(i<strlen(ch)){
+        chaine[i-3]=ch[i];
+        i++; 
+    }
+    free(ch); 
+    chaine[i-3]='\0'; 
+    return chaine; 
+}
 
 //Lecture de l'ensemble du fichier texte 
 Ethernet* lecture(char *name){
@@ -51,30 +62,31 @@ Ethernet* lecture(char *name){
     if(file==NULL){
         return NULL; 
     }
-    //int currentchar=0; 
-    //int indice =0; 
-    Ethernet* ethernet; 
-    //char* ligne_suiv= malloc(TAILLE_MAX*sizeof(char)); 
 
-    char* chainetot = malloc(1000*sizeof(char)); 
-    char* chaine= malloc(36*sizeof(char)); 
+    Ethernet* ethernet; 
+   
+
+    char* chainetot = malloc(1500*sizeof(char)); 
+    char* chaine= malloc(55*sizeof(char)); 
     // lecture intégrale du fichier texte
     while(fgets(chaine, TAILLE_MAX, file)!=NULL){
-        chainetot= strcat(chainetot,chaine); 
+        chaine= supprimeoffset(chaine); 
+        chainetot=strcat(chainetot,chaine); 
     }
     chainetot=motsansespace(chainetot); 
+    printf("chainetot : %s\n", chainetot); 
     //un ligne fait 36 caractère sans espace et avec offset
     // sans offset elle en fait 32
-    printf("chainetot : %s\n", chainetot); 
-    int indice =7; 
+    
     // lecture d'un trame ethernet 
     //Trame ethernet fait au maximum sans le préambule et seulement avec les adresses Mac et le type
     //: 28
-    char* ch= malloc(36*sizeof(char)); 
-    ch[35]='\0'; 
-    while(indice<35){
-        ch[indice-7]=chainetot[indice]; 
-        indice++; 
+    char* ch= malloc(29*sizeof(char)); 
+    ch[28]='\0'; 
+    //int indice nous permettera de garder le compte sur où nous sommes dans la chaine de caractère
+    int indice = 28; 
+    for(int i=0; i<28; i++){
+        ch[i]=chainetot[i]; 
     }
     //printf("\n chaine : %s", ch); 
     ethernet=lectureEthernet(ch); 
@@ -85,24 +97,26 @@ Ethernet* lecture(char *name){
     if(strcmp(ethernet->type,"0800")==0){
         printf("La couche reseau est IPV4\n");
         IPV4* ipv4= malloc(sizeof(IPV4));  
-
+        indice++; //car le 4 ne nous interesse pas 
         // intialisation du champs tos et de IHL
-        ipv4->iHL[0]=chainetot[36];
+        ipv4->iHL[0]=chainetot[indice];
         ipv4->iHL[1]='\0'; 
+        printf(" IHL : %s\t",ipv4->iHL ); 
         //tos est pas défaut toujours à 0x00
 
         //Chaine pour ipv4
         //taille max =60 sans les data + 2 offset 
-        indice=43; 
-        char* ch= malloc(68*sizeof(char)); 
-        ch[67]='\0'; 
-        while(indice-43<68){
-            ch[indice-43]=chainetot[indice];
+        indice=33; 
+        //on rajoute à indice la taille de iHL et de Tos
+        char* ch= malloc(61*sizeof(char)); 
+        ch[60]='\0'; 
+        for(int i=0; ((i<60)&&(chainetot[indice]!='\0')); i++){
+            ch[i]=chainetot[indice];
             indice++;  
         } 
 
-        //printf("\n chaine : %s", ch); 
-        indice=43+lectureIPV4(ch,ipv4); 
+        printf("chaine : %s\n", ch); 
+        indice=33+lectureIPV4(ch,ipv4); 
         printf(" indice : %d\n", indice); 
         afficheIPV4(ipv4); 
 
@@ -111,23 +125,21 @@ Ethernet* lecture(char *name){
         }*/
         if(strcmp(ipv4->Protocol,"06")==0){
             //Protocole TCP 
-            char* ch= malloc(140*sizeof(char)); 
+
+            char* ch= malloc(121*sizeof(char)); 
+            //60*2 car c'est en octet et nous a des hexadécimal 
             
             int constante=indice; 
-            while(indice-constante<140 && chainetot[indice]!='\0'){
-                ch[indice-constante]=chainetot[indice];
+            for(int i=0; i<120 && chainetot[indice]!='\0'; i++){
+                ch[i]=chainetot[indice];
                 indice++;  
             } 
-            ch[indice-constante]='\0'; 
-
-            int reste=(constante-3)%36; 
-            printf("reste: %d", reste); // on est à la reste ième case du début d'une ligne. 
-            reste=reste-4; // on enlève le offset
-            int findeligneds= 32-reste; // on est en fin de ligne dans 32-reste 
+            ch[120]='\0'; 
+            
 
             TCP* tcp= malloc(sizeof(TCP)); 
             printf("\n chaine : %s", ch);
-            indice= indice + lecturetcp(ch,tcp,findeligneds); 
+            indice= constante + lecturetcp(ch,tcp); 
             afficheTCP(tcp); 
             
         }
