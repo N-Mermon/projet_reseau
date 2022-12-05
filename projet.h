@@ -65,7 +65,7 @@ void freeIPV4(IPV4* ipv4 );
 void freeTCP(TCP* tcp); 
 void afficheOptionTCP(OptionTCP* op); 
 void afficheTCP(TCP* tcp); 
-int lecturetcp(char* chaine, TCP* tcp, int findeligne); 
+int lecturetcp(char* chaine, TCP* tcp); 
 
 Ethernet* lecture(char *name);
 
