@@ -30,7 +30,7 @@ void afficheTCP(TCP* tcp){
     afficheOptionTCP(tcp->options); 
     printf("\n"); 
 }
-int lecturetcp(char* chaine, TCP* tcp, int findeligne){
+int lecturetcp(char* chaine, TCP* tcp){
     int m = strlen(chaine); 
 
     tcp->sourcePort[4]='\0';
@@ -54,10 +54,10 @@ int lecturetcp(char* chaine, TCP* tcp, int findeligne){
         }
         if(i<28 && i>=25) tcp->flags[i-25]=chaine[i]; 
         if(i<32 && i>=28) tcp->window[i-28]=chaine[i]; 
-        if(i<35 && i>=31) tcp->checksum[i-31]=chaine[i]; 
-        if(i<39 && i>=35) tcp->urgentPointer[i-35]= chaine[i]; 
+        if(i<36 && i>=32) tcp->checksum[i-32]=chaine[i]; 
+        if(i<40 && i>=36) tcp->urgentPointer[i-36]= chaine[i]; 
         //Les options TCP
-        if(i>=39 && (tcp->tHL-20>0)){
+        if(i>=40 && (tcp->tHL-20>0)){
             if(chaine[i]=='0' && chaine[i+1]=='0'){
                 tete= malloc(sizeof(OptionTCP)); 
                 tete->type[0]= chaine[i]; 
