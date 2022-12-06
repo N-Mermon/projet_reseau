@@ -6,7 +6,9 @@
 #include "projet.h"
 
 int main(){
-    Ethernet* ether= lecture("trame1.txt"); 
-    freeEthernet(ether); 
+    Trame* trame= lecture("trame1.txt"); 
+    Trame* trame1= lecture("trame2.txt"); 
+    trame->suiv=trame1; 
+    freeTrame(trame);  
     return 0; 
 }
