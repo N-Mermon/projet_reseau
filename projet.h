@@ -47,6 +47,29 @@ typedef struct tcp{
 	OptionTCP* options; 
 }TCP; 
 
+typedef struct ligneEntete{
+	struct ligneEntete* tete; 
+	char* nomchamp; 
+	char* valeurchamp; 
+	struct ligneEntete *suiv; 
+}LigneEntete; 
+
+typedef struct http{
+	char* methode; 
+	char* URL; 
+	char* version; 
+	LigneEntete* lig; 
+	char* corpsreq; 
+}HTTP; 
+
+typedef struct trame{
+	Ethernet* eth; 
+	IPV4* ipv4; 
+	TCP* tcp; 
+	HTTP* http; 
+	struct trame * suiv; 
+}Trame; 
+
 char* motsansespace(char*x ); 
 int hexa_int(char* s);
 void afficheoption(Option * option); 
@@ -67,6 +90,18 @@ void afficheOptionTCP(OptionTCP* op);
 void afficheTCP(TCP* tcp); 
 int lecturetcp(char* chaine, TCP* tcp); 
 
-Ethernet* lecture(char *name);
+//HTTP
+void freeLig(LigneEntete* lig); 
+void freeHTTP(HTTP* http); 
+void afficheLig(LigneEntete* lig); 
+void afficheHTTP(HTTP* http); 
+LigneEntete*  inserer_elem_fin(LigneEntete* lig, LigneEntete* l); 
+LigneEntete* ajoutfin(char* ch); 
+void lecturehttp(char* chaine,HTTP* http); 
+
+//Trame
+void afficheTrame(Trame* trame); 
+void freeTrame(Trame* trame); 
+Trame* lecture(char *name); 
 
 #endif
