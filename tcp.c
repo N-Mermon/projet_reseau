@@ -58,6 +58,7 @@ int lecturetcp(char* chaine, TCP* tcp){
         if(i<40 && i>=36) tcp->urgentPointer[i-36]= chaine[i]; 
         //Les options TCP
         if(i>=40 && (tcp->tHL-20>0)){
+            printf("il y a des options"); 
             if(chaine[i]=='0' && chaine[i+1]=='0'){
                 tete= malloc(sizeof(OptionTCP)); 
                 tete->type[0]= chaine[i]; 
@@ -150,6 +151,7 @@ int lecturetcp(char* chaine, TCP* tcp){
             }
 
         }
+        if(tcp->tHL-20==0 && i>=40) return i; 
     }
     return m; 
     
