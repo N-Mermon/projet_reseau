@@ -54,9 +54,29 @@ char* supprimeoffset(char* ch){
     chaine[i-4]='\0'; 
     return chaine; 
 }
+void freeTrame(Trame* trame){
+    while(trame){
+        freeEthernet(trame->eth); 
+        freeIPV4(trame->ipv4); 
+        freeTCP(trame->tcp); 
+        freeHTTP(trame->http);
+        trame=trame->suiv; 
+    }
+}
+void afficheTrame(Trame* trame){
+    while(trame){
+        afficheEthernet(trame->eth); 
+        afficheIPV4(trame->ipv4); 
+        afficheTCP(trame->tcp); 
+        afficheHTTP(trame->http); 
+        printf("\n"); 
+        trame=trame->suiv; 
+    }
+
+}
 
 //Lecture de l'ensemble du fichier texte 
-Ethernet* lecture(char *name){
+Trame* lecture(char *name){
     //lecture d'une trame à partir d'un fichier 
     FILE* file= fopen(name, "r"); 
     if(file==NULL){
@@ -64,9 +84,9 @@ Ethernet* lecture(char *name){
     }
 
     Ethernet* ethernet; 
-   
+    Trame* trame= malloc(sizeof(Trame)); 
 
-    char* chainetot = malloc(1500*sizeof(char)); 
+    char* chainetot = malloc(6000*sizeof(char)); 
     chainetot[0]='\0'; 
     char* chaine= malloc(55*sizeof(char)); 
     // lecture intégrale du fichier texte
@@ -76,7 +96,7 @@ Ethernet* lecture(char *name){
         chainetot=strcat(chainetot,chaine); 
     }
     chainetot=motsansespace(chainetot); 
-    printf("chainetot : %s\n", chainetot); 
+    //printf("chainetot : %s\n", chainetot); 
     //un ligne fait 36 caractère sans espace et avec offset
     // sans offset elle en fait 32
     
@@ -92,18 +112,19 @@ Ethernet* lecture(char *name){
     }
     //printf("\n chaine : %s", ch); 
     ethernet=lectureEthernet(ch); 
-    afficheEthernet(ethernet); 
+    //afficheEthernet(ethernet); 
     free(ch); 
 
+    trame->eth=ethernet; 
     //lecture de IPV4 
     if(strcmp(ethernet->type,"0800")==0){
-        printf("La couche reseau est IPV4\n");
+        //printf("La couche reseau est IPV4\n");
         IPV4* ipv4= malloc(sizeof(IPV4));  
         indice++; //car le 4 ne nous interesse pas 
         // intialisation du champs tos et de IHL
         ipv4->iHL[0]=chainetot[indice];
         ipv4->iHL[1]='\0'; 
-        printf(" IHL : %s\t",ipv4->iHL ); 
+        //printf(" IHL : %s\t",ipv4->iHL ); 
         //tos est pas défaut toujours à 0x00
 
         //Chaine pour ipv4
@@ -117,11 +138,11 @@ Ethernet* lecture(char *name){
             indice++;  
         } 
 
-        printf("chaine : %s\n", ch); 
+        //printf("chaine : %s\n", ch); 
         indice=32+lectureIPV4(ch,ipv4); 
-        printf(" indice : %d\n", indice); 
-        afficheIPV4(ipv4); 
-
+        //printf(" indice : %d\n", indice); 
+        //afficheIPV4(ipv4); 
+        trame->ipv4=ipv4; 
         /*if(strcmp(ipv4->Protocol,"01")==0){
             //Protocole ICMP
         }*/
@@ -140,20 +161,41 @@ Ethernet* lecture(char *name){
             
 
             TCP* tcp= malloc(sizeof(TCP)); 
-            printf("\n chaine : %s", ch);
+            //printf("\n chaine : %s", ch);
             indice= constante + lecturetcp(ch,tcp); 
-            afficheTCP(tcp); 
             
+            afficheTCP(tcp); 
+            free(ch);
+            trame->tcp=tcp; 
+            
+            if(indice<strlen(chainetot)){
+                //alors il y a http
+                //printf("\n %d", indice); 
+                ch= malloc((strlen(chainetot)-indice+1)*sizeof(char)); 
+                //60*2 car c'est en octet et nous a des hexadécimal 
+            
+                for(int i=0; chainetot[indice]!='\0'; i++){
+                    ch[i]=chainetot[indice];
+                    indice++;  
+                } 
+                ch[indice]='\0'; 
+                //printf("http chaine : %s \n", ch); 
+                HTTP* http= malloc(sizeof(HTTP)); 
+                lecturehttp(ch,http); 
+                //afficheHTTP(http);
+                trame->http=http;  
+
+                //printf(" %c ", 73); 
+            }
         }
         /*if(strcmp(ipv4->Protocol,"11")==0){
             //Protocole UDP
         }*/ 
-        
     
     }
     free(chaine); 
     free(ch); 
     free(chainetot); 
     fclose(file); 
-    return ethernet; 
+    return trame; 
 }
