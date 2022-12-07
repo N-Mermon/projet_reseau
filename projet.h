@@ -17,6 +17,7 @@ typedef struct optionTCP{
 	char type[3]; 
 	char longueur[3]; 
 	char valeur[17]; 
+	struct optionTCP* tete; 
 	struct optionTCP* suiv; 
 }OptionTCP;
 
@@ -85,7 +86,9 @@ void afficheIPV4(IPV4* ipv4);
 void freeIPV4(IPV4* ipv4 ); 
 
 //TCP
-void freeTCP(TCP* tcp); 
+void freeTCP(TCP* tcp);
+void freeOptionsTCP(OptionTCP * op); 
+LigneEntete* ajoutfin(char* ch);
 void afficheOptionTCP(OptionTCP* op); 
 void afficheTCP(TCP* tcp); 
 int lecturetcp(char* chaine, TCP* tcp); 
@@ -95,9 +98,9 @@ void freeLig(LigneEntete* lig);
 void freeHTTP(HTTP* http); 
 void afficheLig(LigneEntete* lig); 
 void afficheHTTP(HTTP* http); 
-LigneEntete*  inserer_elem_fin(LigneEntete* lig, LigneEntete* l); 
-LigneEntete* ajoutfin(char* ch); 
+LigneEntete*  inserer_elem_fin(LigneEntete* lig, LigneEntete* l);  
 void lecturehttp(char* chaine,HTTP* http); 
+void hextoAscii(char* ch); 
 
 //Trame
 void afficheTrame(Trame* trame); 
