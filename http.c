@@ -9,14 +9,28 @@ void hextoAscii(char* ch){
     char c[3]; 
     c[3]='\0'; 
     int i; 
-    for( i=0; i<(strlen(ch)/2); i++){
+    char* chaine= malloc((strlen(ch)/2)*sizeof(char)); 
+    int j=0; 
+    for( i=0; i<(strlen(ch)); i++){
+        //printf(" je passe "); 
         c[0]=ch[i]; 
         c[1]=ch[i+1]; 
-        ch[i]=(char) hexa_int(c); 
-        i=i+1; 
+        //printf(" ja passe c: %c"); 
+        if(c[0]=='2' && c[1]=='0'){
+            chaine[j]=' '; 
+            j++; 
+            i=i+1; 
+        }
+        else{
+            chaine[j]=hexa_int(c)-90+'0'; 
+            //printf("chaine: %c", chaine[j]); 
+            j++; 
+            i=i+1; 
+        }
     }
-    printf(" %s",ch); 
-    ch[i]='\0'; 
+    chaine[j]='\0'; 
+    ch=chaine; 
+    printf(":%s:", ch); 
 }
 void freeLig(LigneEntete* lig){
     while(lig){
