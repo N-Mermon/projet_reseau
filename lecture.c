@@ -43,17 +43,7 @@ void afficheoption(Option * option){
         printf("vrai" ); 
     }
 }
-char* supprimeoffset(char* ch){
-    char* chaine = malloc(strlen(ch)*sizeof(char)); 
-    int i=4; 
-    while(i<strlen(ch)){
-        chaine[i-4]=ch[i];
-        i++; 
-    }
-    free(ch); 
-    chaine[i-4]='\0'; 
-    return chaine; 
-}
+
 void freeTrame(Trame* trame){
     while(trame){
         freeEthernet(trame->eth); 
@@ -66,8 +56,12 @@ void freeTrame(Trame* trame){
 void afficheTrame(Trame* trame){
     while(trame){
         afficheEthernet(trame->eth); 
+        printf("\n"); 
         afficheIPV4(trame->ipv4); 
+        printf("\n"); 
         afficheTCP(trame->tcp); 
+        printf("\n");  
+        printf("%d trame http %d\n", trame->http==NULL, NULL==NULL); 
         afficheHTTP(trame->http); 
         printf("\n"); 
         trame=trame->suiv; 
@@ -76,25 +70,25 @@ void afficheTrame(Trame* trame){
 }
 
 //Lecture de l'ensemble du fichier texte 
-Trame* lecture(char *name){
+Trame* lecture(char * chainetot){
     //lecture d'une trame à partir d'un fichier 
-    FILE* file= fopen(name, "r"); 
+    /*FILE* file= fopen(name, "r"); 
     if(file==NULL){
         return NULL; 
     }
-
+    */
     Ethernet* ethernet; 
     Trame* trame= malloc(sizeof(Trame)); 
 
-    char* chainetot = malloc(6000*sizeof(char)); 
-    chainetot[0]='\0'; 
+    /*char* chainetot = malloc(6000*sizeof(char)); 
+    chainetot[0]='\0'; */
     char* chaine= malloc(55*sizeof(char)); 
     // lecture intégrale du fichier texte
-    while(fgets(chaine, TAILLE_MAX, file)!=NULL){
+    /*while(fgets(chaine, TAILLE_MAX, file)!=NULL){
         chaine= supprimeoffset(chaine); 
         //printf("chaine : %s\n",chaine); 
         chainetot=strcat(chainetot,chaine); 
-    }
+    }*/
     chainetot=motsansespace(chainetot); 
     //printf("chainetot : %s\n", chainetot); 
     //un ligne fait 36 caractère sans espace et avec offset
@@ -143,6 +137,8 @@ Trame* lecture(char *name){
         //printf(" indice : %d\n", indice); 
         //afficheIPV4(ipv4); 
         trame->ipv4=ipv4; 
+
+        free(ch);
         /*if(strcmp(ipv4->Protocol,"01")==0){
             //Protocole ICMP
         }*/
@@ -194,7 +190,6 @@ Trame* lecture(char *name){
     }
     free(chaine); 
     free(ch); 
-    free(chainetot); 
-    fclose(file); 
+    //free(chainetot); 
     return trame; 
 }
