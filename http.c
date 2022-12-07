@@ -5,199 +5,154 @@
 #include <math.h>
 #include <time.h>
 
-// Couche Réseau 
-//IPV4
-int lectureIPV4(char* chaine, IPV4* ipv4){
-    ipv4->totalLength[4]='\0';
-    ipv4->identifier[4]='\0'; 
-    ipv4->flags[4]='\0'; 
-    ipv4->fragmentOffset[3]='\0'; 
-    ipv4->ttl[2]='\0'; 
-    ipv4->Protocol[2]='\0'; 
-    ipv4->headerChecksum[4]='\0'; 
-    ipv4->destAddress[8]='\0'; 
-    ipv4->sourceAddress[8]='\0'; 
-
-    int fragmentoffset=0; 
+void hextoAscii(char* ch){
+    char c[3]; 
+    c[3]='\0'; 
+    int i; 
+    for( i=0; i<(strlen(ch)/2); i++){
+        c[0]=ch[i]; 
+        c[1]=ch[i+1]; 
+        ch[i]=(char) hexa_int(c); 
+        i=i+1; 
+    }
+    printf(" %s",ch); 
+    ch[i]='\0'; 
+}
+void freeLig(LigneEntete* lig){
+    while(lig){
+        free(lig->nomchamp); 
+        free(lig->valeurchamp); 
+        lig=lig->suiv; 
+    }
+}
+void freeHTTP(HTTP* http){
+    free(http->methode); 
+    free(http->URL); 
+    free(http->version); 
+    freeLig(http->lig); 
+    free(http->corpsreq); 
+}
+void afficheLig(LigneEntete* lig){
     
-    int option =(hexa_int(ipv4->iHL))*4-20;
-    printf("option : %d \n", option); 
+     while(lig!=NULL){ 
+        printf("Entete ligne : nom champ %s valeur champ %s \n", lig->nomchamp, lig->valeurchamp); 
+        lig=lig->suiv; 
+    }
+}
+void afficheHTTP(HTTP* http){
+    printf("HTTP: methode : %s URL: %s Version:  %s ", http->methode, http->URL, http->version); 
+    afficheLig(http->lig->tete); 
+    printf("Corps Requete : %s\n ",http->corpsreq); 
+}
+LigneEntete*  inserer_elem_fin(LigneEntete* lig, LigneEntete* l){
+    if(lig==NULL){
+        l->tete=l; 
+        return l; 
+    } 
+    while(lig->suiv!=NULL) lig=lig->suiv; 
+    l->tete=lig->tete; 
+    lig->suiv=l;  
+    return lig; 
+}
+LigneEntete* ajoutfin(char* ch){
 
-    Option * tete= ipv4->option;  
+    int j=0;  
+    int compt=0; 
+    LigneEntete* l= malloc(sizeof(LigneEntete));
+    char* chaine = malloc(strlen(ch)*sizeof(char)); 
+    for(int i=0; i<strlen(ch); i++){
+        if(ch[i]=='2' && ch[i+1]=='0' && compt==0){
+            chaine[j]='\0'; 
+            l->nomchamp=strdup(chaine); 
+            j=0; 
+            compt++; 
+            i=i+2; 
+        }
+        if(compt>0 && ch[i]=='2' && ch[i+1]=='0'){
+            i=i+2; 
+        }
+        else{
+            chaine[j]=ch[i]; 
+            j++; 
+        }
+    }
+    chaine[j]='\0'; 
+    l->valeurchamp=strdup(chaine); 
+    l->suiv=NULL; 
+    //printf("valeur champ %s\n", l->valeurchamp); 
+    //printf("nom champ %s\n", l->nomchamp); 
+    //afficheLig(lig); 
+    //printf(" %d %d\t",lig==NULL, NULL==NULL); 
+    free(chaine); 
+    //printf("je passe \n"); 
+    return l; 
+}
+void lecturehttp(char* chaine, HTTP* http){
+    http->methode=NULL; 
+    http->URL=NULL; 
+    http->version=NULL; 
+    http->lig=NULL;  
+    http->corpsreq=NULL; 
 
-    
-    ipv4->fragmentOffset[0]=0; 
-    //remplissage de ipv4
-    for(int i=0; chaine[i]!='\0'; i++){
-        if((i<4)&&(i>=0)) ipv4->totalLength[i]=chaine[i];   
-        if((i<8)&&(i>=4)) ipv4->identifier[i-4]=chaine[i]; 
-        if((i<12)&&(i>=8)){
-            ipv4->flags[i-8]=chaine[i];
-            if(chaine[i]!='0' && i>=9){
-                fragmentoffset=1; 
-                printf("chaine : %c ", chaine [i]); 
+    char*ch= malloc(strlen(chaine)*sizeof(char)); 
+    int j=0; 
+    for(int i=0; i<strlen(chaine); i++){
+        if(chaine[i]=='2' && chaine[i+1]=='0'){
+            if(http->methode==NULL){
+                ch[j]='\0'; 
+                http->methode=strdup(ch); 
+                //printf("methode : %s", http->methode); 
+                j=0; 
+                i=i+2; 
+            }
+            else{
+                if(http->URL==NULL){
+                    ch[j]='\0'; 
+                    http->URL=strdup(ch); 
+                    j=0; 
+                    i=i+2; 
+                    //printf("URL : %s", http->URL); 
+                     
+                }
             }
         }
-        if(fragmentoffset!=0){
-            //printf("fragmentoffset %d\t",fragmentoffset);
-            if((i<16)&&(i>=12)) ipv4->fragmentOffset[i-12]=chaine[i];
-            if((i<19)&&(i>=16)) ipv4->ttl[i-16]=chaine[i];
-            if((i<21)&&(i>=19)) ipv4->Protocol[i-19]=chaine[i];
-            if((i<25)&&(i>=21)) ipv4->headerChecksum[i-21]=chaine[i];
-            if((i>=25 && i<33) ) ipv4->destAddress[i-25]=chaine[i];
-            if((i>=33)&&(i<41)) ipv4->sourceAddress[i-33]=chaine[i]; 
-            if((option==0)&&(i>=41)){
-                printf("Il n'y a pas d'option \n"); 
-                free(tete); 
-                ipv4->option=NULL; 
-                return i; 
+        if(chaine[i]=='0' && (chaine[i+1]=='d'||chaine[i+1]=='D') && chaine[i+2]=='0' && (chaine[i+3]=='a'|| chaine[i+3]=='A')){
+            i=i+3; 
+            if(http->version==NULL){
+                ch[j]='\0'; 
+                http->version=strdup(ch); 
+                j=0; 
+                //printf("version : %s\n", http->version); 
             }
-            if((i>=41)&&(option!=0)){
-                if(chaine[i]=='0' && chaine[i+1]=='\0'){
-                    //End of Option List
-                    tete= malloc(sizeof(Option)); 
-                    tete->op[0]='0';
-                    tete->op[1]='0';
-                    tete->op[2]='\0';
-                    tete->octet= 0; 
-                    tete= tete; 
-                    return i++; 
+            else{
+                //printf(" %c %c %c %c \t", chaine[i+1],chaine[i+2], chaine[i+3], chaine[i+4]); 
+                if(chaine[i+1]=='0' && (chaine[i+2]=='d'||chaine[i+2]=='D') && chaine[i+3]=='0' && (chaine[i+4]=='a'|| chaine[i+4]=='A')){
+                    //Alors on commence le corps
+                    ch[j]='\0'; 
+                    //printf("ligne de fin 1 : %s\n", ch); 
+                    http->lig=inserer_elem_fin(http->lig,ajoutfin(ch)); 
+                    j=0; 
+                    i=i+4; 
                 }
-                else {
-                    if(chaine[i]=='0'&& chaine[i+1]=='1'){
-                    //No Operation : aligner le debut de l'option suivante sur 32bits 
-                    tete= malloc(sizeof(Option)); 
-                    tete->op[0]='0';
-                    tete->op[1]='1';
-                    tete->op[2]='\0';
-                    tete->octet= 0; 
-                    tete= tete->suiv;
-                    
-                    continue; 
-                    } 
-                    else if(chaine[i]=='0'&& chaine[i+1]=='7'){
-                    //Record Route : Permet d'enregistrer l'adesse IP de cahque passerelle traversée
-                    tete= malloc(sizeof(Option)); 
-                    tete->op[0]='0';
-                    tete->op[1]='7';
-                    tete->op[2]='\0';
-                    char c[3]; 
-                    c[0]=chaine[i+2]; 
-                    c[1]=chaine[i+3]; 
-                    c[2]='\0'; 
-                    tete->octet= hexa_int(c); 
-                    tete= tete->suiv;
-                    i=i+3; 
-                    continue; 
-                    } 
-                    else {
-                        tete= malloc(sizeof(Option)); 
-                        tete->op[0]=chaine[i];
-                        tete->op[1]=chaine[i+1];
-                        tete->op[2]='\0';
-                        tete->octet= 0; 
-                        tete= tete->suiv;
-                        i=i+1; 
-                        continue; 
-                    }
+                else{
+                    ch[j]='\0'; 
+                    //printf("ligne de fin  : %s\n", ch); 
+                    http->lig=inserer_elem_fin(http->lig,ajoutfin(ch)); 
+                    //afficheLig(http->lig);  
+                    j=0; 
                 }
-            }
-        }else{
-            if((i<14)&&(i>=12)) ipv4->ttl[i-12]=chaine[i];
-            if((i<16)&&(i>=14)) ipv4->Protocol[i-14]=chaine[i];
-            if((i<20)&&(i>=16)) ipv4->headerChecksum[i-16]=chaine[i];
-            if((i>=20)&&(i<28)) ipv4->destAddress[i-20]=chaine[i]; 
-            //8 caractères dans destAddress
-            if(i>=28 && i<36) ipv4->sourceAddress[i-28]=chaine[i]; 
-            if((option==0)&&(i>=36)){
-                printf("Il n'y a pas d'option \n"); 
-                free(tete); 
-                ipv4->option=NULL; 
-                return i; 
-            }
-            if((i>=36)&&(option!=0)){
-                if(chaine[i]=='0' && chaine[i+1]=='0'){
-                    //End of Option List
-                    tete= malloc(sizeof(Option)); 
-                    tete->op[0]='0';
-                    tete->op[1]='0';
-                    tete->op[2]='\0';
-                    tete->octet= 0; 
-                    tete= tete;  
-                    return i++; 
-                }
-                else {
-                    if(chaine[i]=='0'&& chaine[i+1]=='1'){
-                    //No Operation : aligner le debut de l'option suivante sur 32bits 
-                    tete= malloc(sizeof(Option)); 
-                    tete->op[0]='0';
-                    tete->op[1]='1';
-                    tete->op[2]='\0';
-                    tete->octet= 0; 
-                    tete= tete->suiv;
-                    continue; 
-                    } 
-                    else if(chaine[i]=='0'&& chaine[i+1]=='7'){
-                        //Record Route : Permet d'enregistrer l'adesse IP de cahque passerelle traversée
-                        tete= malloc(sizeof(Option)); 
-                        tete->op[0]='0';
-                        tete->op[1]='7';
-                        tete->op[2]='\0';
-                        char c[3]; 
-                        c[0]=chaine[i+2]; 
-                        //printf(" i = %d i+2: %c", i,  chaine[i+2]); 
-                        c[1]=chaine[i+3]; 
-                        c[2]='\0'; 
-                        //printf(" c: %s",  c); 
-                        tete->octet= hexa_int(c); 
-                        //afficheoption(ipv4->option); 
-                        tete= tete->suiv;
-                        i=i+3; 
-                        //printf(" tout va bien %c", chaine[i]); 
-                        continue; 
-                    } 
-                    else {
-                        //printf(" tout va bien "); 
-                        tete= malloc(sizeof(Option)); 
-                        tete->op[0]=chaine[i];
-                        tete->op[1]=chaine[i+1];
-                        tete->op[2]='\0';
-                        tete->octet= 0; 
-                        afficheoption(tete); 
-                        tete= tete->suiv;
-                        i=i+1; 
-                        continue; 
-                    }
 
-                }//fin du else si l'option n'est pas 0x00
-            }//Fin du if option 
-
-        }//fin du else
-    
-    } // fin de la boucle for
-    return strlen(chaine); 
-}//fin de lectureIPV4
-void afficheIPV4(IPV4* ipv4){
-    if(strcmp(ipv4->flags,"00")==0){
-        printf("IPV4 IHL: %s TOS: 00, TotalLenght : %s , Identifier : %s , flags: %s ", ipv4->iHL, ipv4->totalLength, ipv4->identifier, ipv4->flags); 
-    }else{
-        printf("IPV4 IHL: %s TOS: 00, TotalLenght : %s , Identifier : %s , flags: %s, FragmentOffset : %s ", ipv4->iHL, ipv4->totalLength, ipv4->identifier, ipv4->flags, ipv4->fragmentOffset); 
+            }
+            
+        }
+        else{
+            //printf("  %c ", chaine[i]); 
+            ch[j]=chaine[i]; 
+            j++; 
+        }
     }
-    printf("TTL: %s Protocole: %s , HeaderChecksum: %s ", ipv4->ttl,ipv4->Protocol, ipv4->headerChecksum );
-    printf("DestAddress: %s sourceAddress: %s ", ipv4->destAddress, ipv4->sourceAddress); 
-    afficheoption(ipv4->option); 
-
-}
-void freeIPV4(IPV4* ipv4 ){
-    free(ipv4->iHL); 
-    free(ipv4->totalLength); 
-    free(ipv4->identifier); 
-    free(ipv4->flags); 
-    free(ipv4->fragmentOffset); 
-    free(ipv4->ttl); 
-    free(ipv4->Protocol); 
-    free(ipv4->headerChecksum); 
-    free(ipv4->destAddress); 
-    free(ipv4->sourceAddress); 
-    free(ipv4); 
+    ch[j]='\0'; 
+    http->corpsreq=strdup(ch); 
+    free(ch); 
+    free(chaine); 
 }
