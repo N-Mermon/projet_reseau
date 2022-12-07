@@ -16,11 +16,14 @@ tcp.o : tcp.c projet.h
 http.o : http.c projet.h	
 	gcc -Wall -c -o http.o http.c
 
+fichier.o : fichier.c projet.h	
+	gcc -Wall -c -o fichier.o fichier.c
+
 Main.o : main.c projet.h
 	gcc -Wall -c -o Main.o main.c
 	
-Main: Main.o lecture.o ethernet.o ipv4.o tcp.o http.o
-	gcc -o Main Main.o lecture.o ethernet.o ipv4.o tcp.o http.o
+Main: Main.o lecture.o ethernet.o ipv4.o tcp.o http.o fichier.o
+	gcc -o Main Main.o lecture.o ethernet.o ipv4.o tcp.o http.o fichier.o
 
 clean :
 	rm -f *.o
