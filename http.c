@@ -46,14 +46,6 @@ void freeHTTP(HTTP* http){
     freeLig(http->lig); 
     free(http->corpsreq); 
 }
-void afficheLig(LigneEntete* lig){
-    
-     while(lig!=NULL){ 
-        printf("Entete ligne : nom champ %s valeur champ %s \n", lig->nomchamp, lig->valeurchamp); 
-        lig=lig->suiv; 
-    }
-}
-
 char* HTTP_info(HTTP* http){
 	char *str=(char*)malloc(350*sizeof(char));
 	str[0]='\0';
@@ -83,12 +75,23 @@ char* HTTP_to_string(HTTP* http){
 	return str;
 }
 
+void afficheLig(LigneEntete* lig){
+    
+     while(lig!=NULL){ 
+        printf("Entete ligne : nom champ %s valeur champ %s \n", lig->nomchamp, lig->valeurchamp); 
+        lig=lig->suiv; 
+    }
+}
 void afficheHTTP(HTTP* http){
     printf("HTTP: methode : %s URL: %s Version:  %s ", http->methode, http->URL, http->version); 
-    afficheLig(http->lig->tete); 
+    if(http->lig!=NULL)afficheLig(http->lig->tete); 
+    if(strcmp(http->methode,"504f5354")==-1) {
+        printf("je passe "); 
+        return; 
+        
+    }
     printf("Corps Requete : %s\n ",http->corpsreq); 
 }
-
 LigneEntete*  inserer_elem_fin(LigneEntete* lig, LigneEntete* l){
     if(lig==NULL){
         l->tete=l; 
@@ -132,8 +135,7 @@ LigneEntete* ajoutfin(char* ch){
     //printf("je passe \n"); 
     return l; 
 }
-
-/*void lecturehttp(char* chaine, HTTP* http){
+void lecturehttp(char* chaine, HTTP* http){
     http->methode=NULL; 
     http->URL=NULL; 
     http->version=NULL; 
@@ -179,6 +181,11 @@ LigneEntete* ajoutfin(char* ch){
                     http->lig=inserer_elem_fin(http->lig,ajoutfin(ch)); 
                     j=0; 
                     i=i+4; 
+                    if(strcmp(http->methode,"504f5354")==-1) {
+                        free(ch); 
+                        free(chaine); 
+                        return; 
+                    }
                 }
                 else{
                     ch[j]='\0'; 
@@ -201,80 +208,4 @@ LigneEntete* ajoutfin(char* ch){
     http->corpsreq=strdup(ch); 
     free(ch); 
     free(chaine); 
-}*/
-
-void lecturehttp(char* chaine, HTTP** httpt){
-	HTTP *http =*httpt;
-    http->methode=NULL; 
-    http->URL=NULL; 
-    http->version=NULL; 
-    http->lig=NULL;  
-    http->corpsreq=NULL; 
-
-printf("hhtpppp\n");
-    char*ch= malloc((strlen(chaine)+15)*sizeof(char)); 
-    int j=0; 
-    for(int i=0; i<strlen(chaine); i++){
-        if(chaine[i]=='2' && chaine[i+1]=='0'){
-            if(http->methode==NULL){
-	printf("j= %d\n",j);
-                ch[j]='\0'; 
-                http->methode=malloc(50*sizeof(char));
-		(http->methode)[0]='\0';
-		strcat(http->methode,ch); 
-                printf("methode : %s", http->methode); 
-                j=0; 
-                i=i+2; 
-            }
-            else{
-                if(http->URL==NULL){
-                    ch[j]='\0'; 
-                    http->URL=strdup(ch); 
-                    j=0; 
-                    i=i+2; 
-                    //printf("URL : %s", http->URL); 
-                     
-                }
-            }
-        }
-        if(chaine[i]=='0' && (chaine[i+1]=='d'||chaine[i+1]=='D') && chaine[i+2]=='0' && (chaine[i+3]=='a'|| chaine[i+3]=='A')){
-            i=i+3; 
-            if(http->version==NULL){
-                ch[j]='\0'; 
-                http->version=strdup(ch); 
-                j=0; 
-                //printf("version : %s\n", http->version); 
-            }
-            else{
-                //printf(" %c %c %c %c \t", chaine[i+1],chaine[i+2], chaine[i+3], chaine[i+4]); 
-                if(chaine[i+1]=='0' && (chaine[i+2]=='d'||chaine[i+2]=='D') && chaine[i+3]=='0' && (chaine[i+4]=='a'|| chaine[i+4]=='A')){
-                    //Alors on commence le corps
-                    ch[j]='\0'; 
-                    //printf("ligne de fin 1 : %s\n", ch); 
-                    http->lig=inserer_elem_fin(http->lig,ajoutfin(ch)); 
-                    j=0; 
-                    i=i+4; 
-                }
-                else{
-                    ch[j]='\0'; 
-                    //printf("ligne de fin  : %s\n", ch); 
-                    http->lig=inserer_elem_fin(http->lig,ajoutfin(ch)); 
-                    //afficheLig(http->lig);  
-                    j=0; 
-                }
-
-            }
-            
-        }
-        else{
-            //printf("  %c ", chaine[i]); 
-            ch[j]=chaine[i]; 
-            j++; 
-        }
-    }
-    ch[j]='\0'; 
-    http->corpsreq=strdup(ch); 
-    free(ch); 
-    free(chaine); 
-                printf("methode : %s", http->methode); 
 }
