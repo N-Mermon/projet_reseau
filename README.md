@@ -25,7 +25,7 @@ VOID FREEETHERNET(ETHERNET* ETHER) : permet de libérer la mémoire alloué par 
 IPV4.c
 Int lectureIPV4 (char* chaine, IPV4* ipv4) : cette fonction permet à partir d’une chaine de caractères d’implémenter ipv4 mis en paramètre. Elle renvoie un entier pour savoir quand est-ce qu’on s’arrête dans la chaine. 
 Il y a également une fonction d’affichage de la structure ipv4 et une fonction freeIPV4 pour libérer la mémoire. Dans IPV4 on peut avoir des options. Pour afficher les options on a une fonction d’affichage dans lecture.c. 
-
+La fonction traductionIP prend une chaine de caractères hexadécimales et la modifie pour qu'elle renvoie l'adresse IP correcte. 
 
 tcp.c
 Dans TCP on peut avoir des options, nous avons donc mis une fonction d’affichage pour les options et une fonction qui libère la place, freeOptionsTCP. Il y a également une fonction d’affichage pour la structure TCP et une fonction freeTCP. Nous avons une fonction lectureTCP qui permet de lire depuis une chaine de caractère les champs de tcp et de retenir ces champs dans une structure TCP. Pour l’ajout de option nous avons créé une autre fonction, ajoutfin. Elle permet d’ajouter à la fin de la liste d’option une option. 
@@ -33,3 +33,5 @@ Dans TCP on peut avoir des options, nous avons donc mis une fonction d’afficha
 
 http.c
 Ce fichier contient des fonctions d’affichage et des fonctions free afin de libérer la mémoire : freeLig, freeHTTP, afficheLig, afficheHTTP. Elle contient également une fonction insérer_elem_fin qui permet d’ajouter à la fin d’une chaine de ligne une ligne avec son nom et sa valeur. Nous avons également une fonction de lecture qui va lire à partir d’une chaine de caractère l’entête http et implémenter la structure http. 
+
+Il y a également des fichiers texte trame qui nous permettent de tester nos fonctions. D'autres fichiers sont générés par l'exécution. Le fichier sauvegardeTrame est obtenu lors de l'exécution de la fonction sauvegardeTxt dans fichier.c. Il s'agit d'un trace écrite de l'exécution de notre programme. 
