@@ -5,51 +5,60 @@
 #include <math.h>
 #include <time.h>
 
-char* supprimeoffset(char* ch){
-    char* chaine = malloc(strlen(ch)*sizeof(char)); 
-    int i=4; 
-    while(i<strlen(ch)){
-        chaine[i-4]=ch[i];
-        i++; 
-    }
-    free(ch); 
-    chaine[i-4]='\0'; 
-    return chaine; 
+void decoupe(char* nom){
+
+	char* chaine=(char*)malloc(sizeof(char)*60);
+	FILE* file= fopen(nom, "r"); 
+	int t=0;
+	char* num = malloc(sizeof(char)*7);
+	if(file==NULL){
+				printf("erreur à l'ouverture du fichier\n"); 
+	}
+	int i=1,j=0;
+	while ( (chaine!=NULL|| j==0 )&& i< 5 ){
+		sprintf(num, "%d", (i));
+		FILE* f= fopen(num, "w"); 
+			if(file==NULL){
+				printf("erreur à l'ouverture du fichier\n"); 
+			}
+			if(j!=0){
+				fprintf(f,"%s",chaine);
+			}
+			t=(fgets(chaine, 59, file)!=NULL);
+			while(t==1 && (chaine[0]!='0' || chaine[1]!='0' || chaine[2]!='0' || chaine[3]!='0' || j==0)){
+				printf("%s\n",chaine);
+				fprintf(f,"%s",chaine);
+				j++;
+			t=(fgets(chaine, 59, file)!=NULL);
+			}
+		fclose(f);
+		i++;
+	}
+		fclose(file);
 }
+Trame* assemble(int v){
+	Trame *resultat;
+	Trame *temp=malloc(sizeof(Trame));
+	temp=lecture("1");
+	resultat=temp;
 
-Trame** lirefichier(char * name ){
-    FILE* file= fopen(name, "r"); 
-    if(file==NULL){
-        return NULL; 
-    }
+printf("aa\n");
+	printf("%s\n", TCP_to_string(temp->tcp));
+	char* name = malloc(sizeof(char)*7);
+	for(int k=2;k<=v;k++){
+printf("bb\n");
+		sprintf(name, "%d", (k));
+		//strcat(name,".txt");
+printf("%s\n",name);
+		Trame *tram=lecture(name);
+printf("aa\n");
+		temp->suiv=tram;
+printf("dd\n");
+		temp=tram;
+	}
+printf("cc\n");
+	return resultat;
 
-    char* chainetot = malloc(12000*sizeof(char)); 
-    chainetot[0]='\0'; 
-    char* chaine= malloc(55*sizeof(char)); 
 
-    Trame** t= malloc(10*sizeof(Trame*)); 
-    int i=0; 
-    //printf("Je passe "); 
-    int j=0; 
-    while(fgets(chaine, 56, file)!=NULL){
-        //printf("chaine %s \n",chaine); 
-        //printf(" %c %c %c %c \t",chaine[0],chaine[1], chaine[2], chaine[3]); 
-        if(chaine[0]=='0' && chaine[1]=='0' && chaine[2]=='0' && chaine[3]=='0' && j!=0){
-            //printf("Je passe "); 
-            t[i]=lecture(chainetot); 
-            j=0; 
-            i++; 
-        }
-        //printf("chaine :%s\n",chaine); 
-        chaine = supprimeoffset(chaine); 
-        if(j==0) chainetot=strcpy(chainetot,chaine); 
-        else{chainetot=strcat(chainetot,chaine); }
-        j++; 
-    } 
-    //printf(" %s\n",chainetot); 
-    t[i]=lecture(chainetot); 
-    fclose(file); 
-    free(chaine); 
-    free(chainetot); 
-    return t; 
+
 }
