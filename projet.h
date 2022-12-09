@@ -17,6 +17,7 @@ typedef struct optionTCP{
 	char type[3]; 
 	char longueur[3]; 
 	char valeur[17]; 
+	struct optionTCP* tete; 
 	struct optionTCP* suiv; 
 }OptionTCP;
 
@@ -67,42 +68,33 @@ typedef struct trame{
 	IPV4* ipv4; 
 	TCP* tcp; 
 	HTTP* http; 
-	//char* hexa;
 	struct trame * suiv; 
-
 }Trame; 
-
-//test
-void decoupe(char* nom);
-Trame* assemble(int v);
 
 char* motsansespace(char*x ); 
 int hexa_int(char* s);
 void afficheoption(Option * option); 
-Trame *tri_tcp(Trame *tram);
 
 // Ethernet 
 Ethernet* lectureEthernet(char* chaine); 
 void afficheEthernet(Ethernet* ether);  
 void freeEthernet(Ethernet* ether); 
-char* ethernet_to_string(Ethernet* ether);
 
 //IPV4
 int lectureIPV4(char* chaine, IPV4* ipv4); 
 void afficheIPV4(IPV4* ipv4); 
 void freeIPV4(IPV4* ipv4 ); 
-char* IPV4_main(IPV4* ipv4);
-char* IPV4_to_string(IPV4* ipv4);
+void traductionIP(char* ip);
 
 //TCP
-void freeTCP(TCP* tcp); 
+void freeTCP(TCP* tcp);
+void freeOptionsTCP(OptionTCP * op); 
+LigneEntete* ajoutfin(char* ch);
 void afficheOptionTCP(OptionTCP* op); 
 void afficheTCP(TCP* tcp); 
 int lecturetcp(char* chaine, TCP* tcp); 
 char* TCP_to_string(TCP* tcp);
-char* TCP_main(TCP* tcp);
-void test();
-char* TCP_info(TCP* tcp);
+char* tcp_drapeaux(TCP* tcp);
 
 //HTTP
 char* HTTP_to_string(HTTP* http);
@@ -110,18 +102,18 @@ void freeLig(LigneEntete* lig);
 void freeHTTP(HTTP* http); 
 void afficheLig(LigneEntete* lig); 
 void afficheHTTP(HTTP* http); 
-LigneEntete*  inserer_elem_fin(LigneEntete* lig, LigneEntete* l); 
-LigneEntete* ajoutfin(char* ch); 
-void lecturehttp(char* chaine,HTTP** http); 
-char* HTTP_info(HTTP* http);
+LigneEntete*  inserer_elem_fin(LigneEntete* lig, LigneEntete* l);  
+void lecturehttp(char* chaine,HTTP* http); 
+void hextoAscii(char* ch); 
 
 //Trame
 void afficheTrame(Trame* trame); 
 void freeTrame(Trame* trame); 
 Trame* lecture(char *name); 
 
-//fichier.c
-char* supprimeoffset(char* ch);
-Trame** lirefichier(char * name );
+//fichier ou test 
+void sauvegardeTxt(Trame* t, char*name); 
+Trame* assemble(int v); 
+void decoupe(char* nom);
 
 #endif
