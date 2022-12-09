@@ -20,11 +20,28 @@ Ethernet* lectureEthernet(char* chaine){
     ethernet->type[4]='\0'; 
     return ethernet; 
 }
+
 void afficheEthernet(Ethernet* ether){
     printf("Mac source : %s , Mac dest : %s , type : %s ", ether->mac_source, ether->mac_dest, ether->type);  
 }
+
 void freeEthernet(Ethernet* ether){
     free(ether->mac_dest); 
     free(ether->mac_source); 
     free(ether); 
 }
+
+char* ethernet_to_string(Ethernet* ether){
+	char *str=(char*)malloc(150*sizeof(char));
+	str[0]='\0';
+	strcat( str , ("<span size=\"large\"><b>Ethernet :</b>")) ;
+	strcat( str , "\nMac source : <i>") ;
+	strcat( str , (ether->mac_source)) ;
+	strcat( str , "</i>\nMac destnation : <i>") ;
+	strcat( str , (ether->mac_dest)) ;
+	strcat( str , "</i>\ntype : <i>") ;
+	strcat( str , (ether->type)) ;
+	strcat( str , "</i> </span>") ;
+	return str;
+}
+

@@ -47,9 +47,11 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
             if((i>=25 && i<33) ) ipv4->destAddress[i-25]=chaine[i];
             if((i>=33)&&(i<41)) ipv4->sourceAddress[i-33]=chaine[i]; 
             if((option==0)&&(i>=41)){
+		printf("i=%d\n",i);
                 printf("Il n'y a pas d'option \n"); 
                 free(tete); 
                 ipv4->option=NULL; 
+		printf("%d\n",i);
                 return i; 
             }
             if((i>=41)&&(option!=0)){
@@ -111,7 +113,7 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
             if(i>=28 && i<36) ipv4->sourceAddress[i-28]=chaine[i]; 
             if((option==0)&&(i>=36)){
                 printf("Il n'y a pas d'option \n"); 
-                free(tete); 
+                //free(tete); 
                 ipv4->option=NULL; 
                 return i; 
             }
@@ -177,6 +179,7 @@ int lectureIPV4(char* chaine, IPV4* ipv4){
     } // fin de la boucle for
     return strlen(chaine); 
 }//fin de lectureIPV4
+
 void afficheIPV4(IPV4* ipv4){
     if(strcmp(ipv4->flags,"00")==0){
         printf("IPV4 IHL: %s TOS: 00, TotalLenght : %s , Identifier : %s , flags: %s ", ipv4->iHL, ipv4->totalLength, ipv4->identifier, ipv4->flags); 
@@ -187,6 +190,53 @@ void afficheIPV4(IPV4* ipv4){
     printf("DestAddress: %s sourceAddress: %s ", ipv4->destAddress, ipv4->sourceAddress); 
     afficheoption(ipv4->option); 
 
+}
+
+char * IPV4_main(IPV4* ipv4){
+	char *str=(char*)malloc(150*sizeof(char));
+	str[0]='\0';
+	strcat( str , "IP_Dest : ") ;
+	strcat( str , (ipv4->destAddress)) ;
+	strcat( str , "\nSourceAddress : ") ;
+	strcat( str , (ipv4->sourceAddress)) ;
+
+    //afficheoption(ipv4->option); 
+	return str;
+}
+
+char*IPV4_to_string(IPV4* ipv4){
+	char *str=(char*)malloc(350*sizeof(char));
+	str[0]='\0';
+	strcat( str , ("<span size=\"large\"><b>IPV4 :</b>")) ;
+	strcat( str , "\nIHL : <i>") ;
+	strcat( str , (ipv4->iHL)) ;
+	strcat( str , "</i>\nTOS : <i>") ;
+	strcat( str , (ipv4->totalLength)) ;
+	strcat( str , "</i>\ntypeTotalLenght : <i>") ;
+	strcat( str , (ipv4->totalLength)) ;
+	strcat( str , "</i>\nIdentifier : <i>") ;
+	strcat( str , (ipv4->identifier)) ;
+	strcat( str , "</i>\nflags : <i>") ;
+	strcat( str , (ipv4->flags)) ;
+
+    /*if(strcmp(ipv4->flags,"00")!=0){
+	strcat( str , "\nFragmentOffset : ") ;
+	strcat( str , (ipv4->fragmentOffset)) ;
+    }*/
+	strcat( str , "</i>\nTTL : <i>") ;
+	strcat( str , (ipv4->ttl)) ;
+	strcat( str , "</i>\nProtocole : <i>") ;
+	strcat( str , (ipv4->Protocol)) ;
+	strcat( str , "</i>\nHeaderChecksum : <i>") ;
+	strcat( str , (ipv4->headerChecksum)) ;
+	strcat( str , "</i>\nDestAddress : <i>") ;
+	strcat( str , (ipv4->destAddress)) ;
+	strcat( str , "</i>\nSourceAddress : <i>") ;
+	strcat( str , (ipv4->sourceAddress)) ;
+	strcat( str , "</i></span>") ;
+
+    //afficheoption(ipv4->option); 
+	return str;
 }
 void freeIPV4(IPV4* ipv4 ){
     free(ipv4->iHL); 
