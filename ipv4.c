@@ -7,6 +7,41 @@
 
 // Couche Réseau 
 //IPV4
+void traductionIP(char* ip){
+    
+    char* c=malloc(sizeof(char)*3); 
+    int j=0; int p1;int p2; int p3; int p4; 
+    for(int i=0; i<strlen(ip); i++){
+        if(i==2){
+            c[j]='\0'; 
+            p1=hexa_int(c); 
+            printf(" p1: %d ",p1); 
+            j=0; 
+        }
+        if(i==4){
+            c[j]='\0'; 
+            p2=hexa_int(c); 
+            printf(" p2: %d ",p2); 
+            j=0; 
+        }
+        if(i==6){
+            c[j]='\0'; 
+            p3=hexa_int(c); 
+            j=0; 
+        }
+        if(i==8){
+            c[j]='\0'; 
+            p4=hexa_int(c); 
+            j=0; 
+            break; 
+        }
+        c[j]=ip[i]; 
+        j++; 
+    }
+    sprintf(ip,"%d . %d . %d . %d",p1,p2,p3,p4); 
+    free(c); 
+    return; 
+}
 int lectureIPV4(char* chaine, IPV4* ipv4){
     ipv4->totalLength[4]='\0';
     ipv4->identifier[4]='\0'; 
