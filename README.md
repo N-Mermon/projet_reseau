@@ -35,3 +35,5 @@ http.c
 Ce fichier contient des fonctions d’affichage et des fonctions free afin de libérer la mémoire : freeLig, freeHTTP, afficheLig, afficheHTTP. Elle contient également une fonction insérer_elem_fin qui permet d’ajouter à la fin d’une chaine de ligne une ligne avec son nom et sa valeur. Nous avons également une fonction de lecture qui va lire à partir d’une chaine de caractère l’entête http et implémenter la structure http. 
 
 Il y a également des fichiers texte trame qui nous permettent de tester nos fonctions. D'autres fichiers sont générés par l'exécution. Le fichier sauvegardeTrame est obtenu lors de l'exécution de la fonction sauvegardeTxt dans fichier.c. Il s'agit d'un trace écrite de l'exécution de notre programme. 
+
+Lorsque le fichier texte qu'on tente d'analyser à plusieurs trames il faut annoncer le nombre de trames qu'on souhaite analyser et s'il y en a plus de 10 changer la variable i de la boucle while afin que cette boucle s'arrête à plus de 10. 
