@@ -27,6 +27,9 @@ void afficheOptionTCP(OptionTCP* op){
 void afficheTCP(TCP* tcp){
     printf("TCP NportS : %s, NportD : %s, SN: %s, AN: %s, ", tcp->sourcePort, tcp->destPort, tcp->sn, tcp->an); 
     printf("THL %d, flags: %s, fenetre : %s, checksum : %s, URG : %s ", tcp->tHL, tcp->flags, tcp->window, tcp->checksum,tcp->urgentPointer); 
+    if(tcp->options==NULL){
+        return ; 
+    }
     afficheOptionTCP(tcp->options); 
     printf("\n"); 
 }
