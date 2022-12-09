@@ -43,7 +43,17 @@ void afficheoption(Option * option){
         printf("vrai" ); 
     }
 }
-
+char* supprimeoffset(char* ch){
+    char* chaine = malloc(strlen(ch)*sizeof(char)); 
+    int i=4; 
+    while(i<strlen(ch)){
+        chaine[i-4]=ch[i];
+        i++; 
+    }
+    free(ch); 
+    chaine[i-4]='\0'; 
+    return chaine; 
+}
 void freeTrame(Trame* trame){
     while(trame){
         freeEthernet(trame->eth); 
@@ -56,12 +66,8 @@ void freeTrame(Trame* trame){
 void afficheTrame(Trame* trame){
     while(trame){
         afficheEthernet(trame->eth); 
-        printf("\n"); 
         afficheIPV4(trame->ipv4); 
-        printf("\n"); 
         afficheTCP(trame->tcp); 
-        printf("\n");  
-        printf("%d trame http %d\n", trame->http==NULL, NULL==NULL); 
         afficheHTTP(trame->http); 
         printf("\n"); 
         trame=trame->suiv; 
@@ -70,25 +76,26 @@ void afficheTrame(Trame* trame){
 }
 
 //Lecture de l'ensemble du fichier texte 
-Trame* lecture(char * chainetot){
+Trame* lecture(char *name){
     //lecture d'une trame à partir d'un fichier 
-    /*FILE* file= fopen(name, "r"); 
+    FILE* file= fopen(name, "r"); 
     if(file==NULL){
         return NULL; 
     }
-    */
+	printf("debut lecture\n");
     Ethernet* ethernet; 
     Trame* trame= malloc(sizeof(Trame)); 
+//trame->hexa==NULL;
 
-    /*char* chainetot = malloc(6000*sizeof(char)); 
-    chainetot[0]='\0'; */
+    char* chainetot = malloc(6000*sizeof(char)); 
+    chainetot[0]='\0'; 
     char* chaine= malloc(55*sizeof(char)); 
     // lecture intégrale du fichier texte
-    /*while(fgets(chaine, TAILLE_MAX, file)!=NULL){
+    while(fgets(chaine, TAILLE_MAX, file)!=NULL){
         chaine= supprimeoffset(chaine); 
         //printf("chaine : %s\n",chaine); 
         chainetot=strcat(chainetot,chaine); 
-    }*/
+    }
     chainetot=motsansespace(chainetot); 
     //printf("chainetot : %s\n", chainetot); 
     //un ligne fait 36 caractère sans espace et avec offset
@@ -108,8 +115,9 @@ Trame* lecture(char * chainetot){
     ethernet=lectureEthernet(ch); 
     //afficheEthernet(ethernet); 
     free(ch); 
-
+	printf("milieu lecture\n");
     trame->eth=ethernet; 
+	trame->suiv=NULL;
     //lecture de IPV4 
     if(strcmp(ethernet->type,"0800")==0){
         //printf("La couche reseau est IPV4\n");
@@ -127,69 +135,94 @@ Trame* lecture(char * chainetot){
         //on rajoute à indice la taille de iHL et de Tos
         char* ch= malloc(61*sizeof(char)); 
         ch[60]='\0'; 
-        for(int i=0; ((i<60)&&(chainetot[indice]!='\0')); i++){
-            ch[i]=chainetot[indice];
-            indice++;  
-        } 
+		for(int i=0; ((i<60)&&(chainetot[indice]!='\0')); i++){
+		    ch[i]=chainetot[indice];
+		    indice++;  
+		} 
 
         //printf("chaine : %s\n", ch); 
         indice=32+lectureIPV4(ch,ipv4); 
+	printf("ipdest %s, ipsource %s\n",ipv4->destAddress, ipv4->sourceAddress);
         //printf(" indice : %d\n", indice); 
         //afficheIPV4(ipv4); 
         trame->ipv4=ipv4; 
-
-        free(ch);
         /*if(strcmp(ipv4->Protocol,"01")==0){
             //Protocole ICMP
         }*/
-        if(strcmp(ipv4->Protocol,"06")==0){
-            //Protocole TCP 
+		if(strcmp(ipv4->Protocol,"06")==0){
+		    //Protocole TCP 
+				printf("tcp boucle\n");
+		    char* ch= malloc(121*sizeof(char)); 
+		    //60*2 car c'est en octet et nous a des hexadécimal 
+		    
+		    int constante=indice; 
+			    for(int i=0; i<120 && chainetot[indice]!='\0'; i++){
+				ch[i]=chainetot[indice];
+				indice++;  
+			    } 
+		    ch[120]='\0'; 
+		    
 
-            char* ch= malloc(121*sizeof(char)); 
-            //60*2 car c'est en octet et nous a des hexadécimal 
-            
-            int constante=indice; 
-            for(int i=0; i<120 && chainetot[indice]!='\0'; i++){
-                ch[i]=chainetot[indice];
-                indice++;  
-            } 
-            ch[120]='\0'; 
-            
+		    TCP* tcp= malloc(sizeof(TCP)); 
+		    //printf("\n chaine : %s", ch);
+		    indice= constante + lecturetcp(ch,tcp); 
+		    
+		    //afficheTCP(tcp); 
+		    free(ch);
+		    trame->tcp=tcp; 
+            	printf("fin tcp\n");
 
-            TCP* tcp= malloc(sizeof(TCP)); 
-            //printf("\n chaine : %s", ch);
-            indice= constante + lecturetcp(ch,tcp); 
-            
-            //afficheTCP(tcp); 
-            free(ch);
-            trame->tcp=tcp; 
-            
-            if(indice<strlen(chainetot)){
-                //alors il y a http
-                //printf("\n %d", indice); 
-                ch= malloc((strlen(chainetot)-indice+1)*sizeof(char)); 
-                //60*2 car c'est en octet et nous a des hexadécimal 
-            
-                for(int i=0; chainetot[indice]!='\0'; i++){
-                    ch[i]=chainetot[indice];
-                    indice++;  
-                } 
-                ch[indice]='\0'; 
-                //printf("http chaine : %s \n", ch); 
-                trame->http= malloc(sizeof(HTTP)); 
-                lecturehttp(ch,trame->http); 
-                //afficheHTTP(trame->http); 
+			    if(indice<strlen(chainetot)){
+				HTTP *http=malloc(sizeof(HTTP));
+				trame->http=http;
+				printf("http condition\n");
+				//alors il y a http
+				//printf("\n %d", indice); 
+				ch= malloc((strlen(chainetot)-indice+1)*sizeof(char)); 
+				//60*2 car c'est en octet et nous a des hexadécimal 
+			    
+					for(int i=0; chainetot[indice]!='\0'; i++){
+					    ch[i]=chainetot[indice];
+					    indice++;  
+					} 
+				ch[indice]='\0'; 
+				//printf("http chaine : %s \n", ch); 
+				trame->http= malloc(sizeof(HTTP)); 
+				lecturehttp(ch,&(trame->http)); 
+				printf("%s\n", trame->http->methode);
+				//afficheHTTP(trame->http); 
 
-                //printf(" %c ", 73); 
-            }
-        }
+				//printf(" %c ", 73); 
+			    }
+        	}
         /*if(strcmp(ipv4->Protocol,"11")==0){
             //Protocole UDP
         }*/ 
     
     }
+	printf("av free\n");
     free(chaine); 
     free(ch); 
-    //free(chainetot); 
+    free(chainetot); 
+    fclose(file); 
+	printf("ap free\n");
     return trame; 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
