@@ -65,9 +65,13 @@ void freeTrame(Trame* trame){
 }
 void afficheTrame(Trame* trame){
     while(trame){
-        afficheEthernet(trame->eth); 
+
+       afficheEthernet(trame->eth); 
+        printf("\n"); 
         afficheIPV4(trame->ipv4); 
+        printf("\n"); 
         afficheTCP(trame->tcp); 
+        printf("\n"); 
         afficheHTTP(trame->http); 
         printf("\n"); 
         trame=trame->suiv; 
@@ -188,7 +192,7 @@ Trame* lecture(char *name){
 				ch[indice]='\0'; 
 				//printf("http chaine : %s \n", ch); 
 				trame->http= malloc(sizeof(HTTP)); 
-				lecturehttp(ch,&(trame->http)); 
+				lecturehttp(ch,trame->http); 
 				printf("%s\n", trame->http->methode);
 				//afficheHTTP(trame->http); 
 
@@ -200,6 +204,7 @@ Trame* lecture(char *name){
         }*/ 
     
     }
+    trame->suiv=NULL; 
 	printf("av free\n");
     free(chaine); 
     free(ch); 
@@ -208,6 +213,11 @@ Trame* lecture(char *name){
 	printf("ap free\n");
     return trame; 
 }
+
+
+
+
+
 
 
 
