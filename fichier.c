@@ -19,9 +19,9 @@ void sauvegardeTxt(Trame* t, char*name){
 		temp->ipv4->ttl,temp->ipv4->Protocol,
 		temp->ipv4->headerChecksum,temp->ipv4->destAddress,
 		temp->ipv4->sourceAddress); 
-		fprintf(f,"TCP \nSource Port : %s\tDest Port: %s\nSN: %s\nAN: %s\nTHL: %d\tFlags: %s\tWindow: %s\nChecksum: %s\tUrgentPointer: %s\n",
+		if(t->tcp!=NULL)fprintf(f,"TCP \nSource Port : %s\tDest Port: %s\nSN: %s\nAN: %s\nTHL: %d\tFlags: %s\tWindow: %s\nChecksum: %s\tUrgentPointer: %s\n",
 		temp->tcp->sourcePort,temp->tcp->destPort,temp->tcp->sn,temp->tcp->an,temp->tcp->tHL,temp->tcp->flags,temp->tcp->window,temp->tcp->checksum, temp->tcp->urgentPointer);
-		fprintf(f,"HTTP \nMethode : %s\tURL: %s\nVersion: %s", temp->http->methode,temp->http->URL,temp->http->version); 
+		if(t->http!=NULL)fprintf(f,"HTTP \nMethode : %s\tURL: %s\nVersion: %s", temp->http->methode,temp->http->URL,temp->http->version); 
 		fprintf(f,"\n\n"); 
 		temp= temp->suiv;  
 	}
@@ -38,7 +38,7 @@ void decoupe(char* nom){
 				printf("erreur à l'ouverture du fichier\n"); 
 	}
 	int i=1,j=0;
-	while ( (chaine!=NULL|| j==0 )&& i< 5 ){
+	while ( (chaine!=NULL|| j==0 )&& i<= 10 ){
 		sprintf(num, "%d", (i));
 		FILE* f= fopen(num, "w"); 
 			if(file==NULL){
@@ -49,7 +49,7 @@ void decoupe(char* nom){
 			}
 			t=(fgets(chaine, 59, file)!=NULL);
 			while(t==1 && (chaine[0]!='0' || chaine[1]!='0' || chaine[2]!='0' || chaine[3]!='0' || j==0)){
-				printf("%s\n",chaine);
+				//printf("%s\n",chaine);
 				fprintf(f,"%s",chaine);
 				j++;
 			t=(fgets(chaine, 59, file)!=NULL);
@@ -57,7 +57,9 @@ void decoupe(char* nom){
 		fclose(f);
 		i++;
 	}
-		fclose(file);
+	fclose(file);
+	free(chaine); 
+	free(num); 
 }
 Trame* assemble(int v){
 	Trame *resultat;
@@ -80,8 +82,6 @@ printf("dd\n");
 		temp=tram;
 	}
 printf("cc\n");
+free(name); 
 	return resultat;
-
-
-
 }
