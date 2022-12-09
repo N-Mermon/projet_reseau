@@ -14,10 +14,15 @@ int main(){
     //trame->suiv=trame1; 
     //printf("affiche HTTP corps : %s", trame->http->corpsreq); */
 
-    Trame**t = lirefichier("trame1.txt"); 
-    printf("Je passe "); 
-    afficheTrame(t[0]); 
+     decoupe("trame1.txt"); 
+     Trame* t = assemble(4); 
+    //afficheHTTP(t[0]->http); 
+    //printf("Je passe "); 
+    //printf("%s trame http dans main%d\n", t[0]->http->version, NULL==NULL); 
+    afficheTrame(t); 
+    //afficheTrame(t[1]); 
     //hextoAscii("73207475"); 
-    //freeTrame(trame);  
+    freeTrame(t);
+    //freeTrame(t[1]);   
     return 0; 
 }
