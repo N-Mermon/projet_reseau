@@ -91,7 +91,7 @@ Trame* lecture(char *name){
     Trame* trame= malloc(sizeof(Trame)); 
 //trame->hexa==NULL;
 
-    char* chainetot = malloc(6000*sizeof(char)); 
+    char* chainetot = malloc(1800*sizeof(char)); 
     chainetot[0]='\0'; 
     char* chaine= malloc(55*sizeof(char)); 
     // lecture intégrale du fichier texte
@@ -146,9 +146,10 @@ Trame* lecture(char *name){
 
         //printf("chaine : %s\n", ch); 
         indice=32+lectureIPV4(ch,ipv4); 
-	printf("ipdest %s, ipsource %s\n",ipv4->destAddress, ipv4->sourceAddress);
+	    printf("ipdest %s, ipsource %s\n",ipv4->destAddress, ipv4->sourceAddress);
         //printf(" indice : %d\n", indice); 
         //afficheIPV4(ipv4); 
+        free(ch); 
         trame->ipv4=ipv4; 
         /*if(strcmp(ipv4->Protocol,"01")==0){
             //Protocole ICMP
@@ -195,7 +196,6 @@ Trame* lecture(char *name){
 				lecturehttp(ch,trame->http); 
 				printf("%s\n", trame->http->methode);
 				//afficheHTTP(trame->http); 
-
 				//printf(" %c ", 73); 
 			    }
         	}
@@ -213,11 +213,6 @@ Trame* lecture(char *name){
 	printf("ap free\n");
     return trame; 
 }
-
-
-
-
-
 
 
 
