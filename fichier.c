@@ -4,7 +4,30 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-
+void sauvegardeTxt(Trame* t, char*name){
+    FILE* f= fopen(name,"w"); 
+    if(f==NULL){
+        printf("Erreur à l'ouverture "); 
+        return; 
+    }
+    Trame * temp=t; 
+	while(temp){
+		fprintf(f,"Ethernet \nMAC source : %s\tMAC Dest : %s\tType: %s\n",temp->eth->mac_source,temp->eth->mac_dest,temp->eth->type); 
+		fprintf(f,"IPV4 \nIHL: %s\tTotalLength: %s\tIdentifier: %s\tFlags: %s\tFragmentoffset: %s\nTTL: %s\tProtocole: %s\tHeaderChecksum: %s\nDest Address: %s\tSource Address: %s\n", 
+		temp->ipv4->iHL,temp->ipv4->totalLength,temp->ipv4->identifier,
+		temp->ipv4->flags,temp->ipv4->fragmentOffset,
+		temp->ipv4->ttl,temp->ipv4->Protocol,
+		temp->ipv4->headerChecksum,temp->ipv4->destAddress,
+		temp->ipv4->sourceAddress); 
+		fprintf(f,"TCP \nSource Port : %s\tDest Port: %s\nSN: %s\nAN: %s\nTHL: %d\tFlags: %s\tWindow: %s\nChecksum: %s\tUrgentPointer: %s\n",
+		temp->tcp->sourcePort,temp->tcp->destPort,temp->tcp->sn,temp->tcp->an,temp->tcp->tHL,temp->tcp->flags,temp->tcp->window,temp->tcp->checksum, temp->tcp->urgentPointer);
+		fprintf(f,"HTTP \nMethode : %s\tURL: %s\nVersion: %s", temp->http->methode,temp->http->URL,temp->http->version); 
+		fprintf(f,"\n\n"); 
+		temp= temp->suiv;  
+	}
+	free(temp); 
+    fclose(f); 
+}
 void decoupe(char* nom){
 
 	char* chaine=(char*)malloc(sizeof(char)*60);
